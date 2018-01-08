@@ -3,7 +3,7 @@ package hust.tools.hmm.model;
 import hust.tools.hmm.utils.StateSequence;
 
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Set;
 
 import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
@@ -50,17 +50,10 @@ public class HMMModel implements HMM {
 	public double getProb(ObservationSequence observations) {
 		return 0;
 	}
-
-	@Override
-	public double transitionProb(State si, State sj) {
-		Transition transition = new Transition(si, sj);
-		
-		return transitionMatrix.get(transition).getProb();
-	}
 	
 	@Override
-	public double transitionProb(State[] si, State sj) {
-		Transition transition = new Transition(si, sj);
+	public double transitionProb(StateSequence si, State sj) {
+		Transition transition = new Transition(si.toArray(), sj);
 		
 		return transitionMatrix.get(transition).getProb();
 	}
@@ -69,7 +62,7 @@ public class HMMModel implements HMM {
 		State si = dict.getState(i);
 		State sj = dict.getState(j);
 		
-		return transitionProb(si, sj);
+		return transitionProb(new StateSequence(si), sj);
 	}
 
 	@Override
@@ -79,14 +72,7 @@ public class HMMModel implements HMM {
 		return emissionMatrix.get(emission).getProb();
 	}
 	
-	@Override
-	public double emissionProb(State[] state, Observation observation) {
-		Emission emission = new Emission(state, observation);
-		
-		return emissionMatrix.get(emission).getProb();
-	}
-	
-	public double emissionProb(int i, int t) {		
+	public double emissionProb(int i, int t) {
 		State si = dict.getState(i);
 		Observation ot = dict.getObservation(t);
 		
@@ -95,28 +81,16 @@ public class HMMModel implements HMM {
 
 	@Override
 	public Observation[] getObservationStates() {
-		Observation[] observations = new Observation[dict.observationCount()];
+		Set<Observation> set = dict.getObservations();
 		
-		int i = 0;
-		Iterator<Observation> iterator = dict.getObservations();
-		while(iterator.hasNext()) {
-			observations[i++] = iterator.next();
-		}
-		
-		return observations;
+		return set.toArray(new Observation[set.size()]);
 	}
 
 	@Override
 	public State[] getStates() {
-		State[] states = new State[dict.stateCount()];
+		Set<State> set = dict.getStates();
 		
-		int i = 0;
-		Iterator<State> iterator = dict.getStates();
-		while(iterator.hasNext()) {
-			states[i++] = iterator.next();
-		}
-		
-		return states;
+		return set.toArray(new State[set.size()]);
 	}
 
 	@Override

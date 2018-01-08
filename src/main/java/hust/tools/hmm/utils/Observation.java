@@ -14,7 +14,7 @@ public interface Observation {
 	 * 赋予观测状态索引值
 	 * @param index	索引值
 	 */
-	public void setIndex(int index);
+	public Observation setIndex(int index);
 	
 	/**
 	 * 返回观测状态的索引值

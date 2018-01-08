@@ -14,7 +14,7 @@ public interface State {
 	 * 赋予隐藏状态索引值
 	 * @param index	索引值
 	 */
-	public void setIndex(int index);
+	public State setIndex(int index);
 	
 	/**
 	 * 返回隐藏状态的索引值

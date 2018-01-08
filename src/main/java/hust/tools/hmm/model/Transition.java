@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import hust.tools.hmm.utils.State;
+import hust.tools.hmm.utils.StateSequence;
 
 /**
  *<ul>
@@ -15,28 +16,59 @@ import hust.tools.hmm.utils.State;
  */
 public class Transition {
 	
-	private State[] starts;
+	/**
+	 * 转移序列，前size-1个为转移条件，最后
+	 */
+	private State[] start;
 	
 	private State target;
+	
+	public Transition(State[] states) {
+		if(states.length < 2) 
+			throw new IllegalArgumentException("状态数不能小于2");
+		
+		start = new State[states.length - 1];
+		int i = 0;
+		for(i = 0; i < start.length; i++)
+			start[i] = states[i];
+		
+		target = states[i];
+	}
 	
 	public Transition(State start, State target) {
 		this(new State[]{start}, target);
 	}
 	
-	public Transition(List<State> starts, State target) {
-		this(starts.toArray(new State[starts.size()]), target);
+	public Transition(List<State> start, State target) {
+		this(start.toArray(new State[start.size()]), target);
 	}
 	
-	public Transition(State[] starts, State target) {
-		this.starts = starts;
+	public Transition(State[] start, State target) {
+		this.start = start;
 		this.target = target;
+	}
+	
+	public Transition(StateSequence start, State target) {
+		this(start.toArray(), target);
+	}
+	
+	public StateSequence getStartSequence() {
+		return new StateSequence(start);
+	}
+	
+	public State[] getStart() {
+		return start;
+	}
+	
+	public State getTarget() {
+		return target;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + Arrays.hashCode(starts);
+		result = prime * result + Arrays.hashCode(start);
 		result = prime * result + ((target == null) ? 0 : target.hashCode());
 		return result;
 	}
@@ -50,7 +82,7 @@ public class Transition {
 		if (getClass() != obj.getClass())
 			return false;
 		Transition other = (Transition) obj;
-		if (!Arrays.equals(starts, other.starts))
+		if (!Arrays.equals(start, other.start))
 			return false;
 		if (target == null) {
 			if (other.target != null)
@@ -62,7 +94,7 @@ public class Transition {
 
 	public String toString() {
 		String string = "[";
-		for(State state : starts) {
+		for(State state : start) {
 			string += state + "  ";
 		}
 		

@@ -51,16 +51,14 @@ public interface HMM {
 	 * @return
 	 */
 	public double getProb(ObservationSequence observations, StateSequence states);
-
+	
 	/**
 	 * 返回隐藏状态i到j的转移概率
 	 * @param i	起始隐藏状态
 	 * @param j	目的隐藏状态
 	 * @return	转移概率
 	 */
-	public double transitionProb(State i, State j);
-	
-	public double transitionProb(State[] i, State j);
+	public double transitionProb(StateSequence i, State j);
 	
 	/**
 	 * 返回隐藏状态i到观测状态t的发射概率
@@ -69,9 +67,7 @@ public interface HMM {
 	 * @return	发射概率
 	 */
 	public double emissionProb(State i, Observation t);
-	
-	public double emissionProb(State[] i, Observation t);
-	
+		
 	/**
 	 * 返回所有观测状态
 	 * @return	观测状态

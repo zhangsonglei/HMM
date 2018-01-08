@@ -71,6 +71,10 @@ public class StateSequence implements Sequence<State> {
 	public List<State> get() {
 		return states;
 	}
+	
+	public State[] toArray() {
+		return states.toArray(new State[size()]);
+	}
 
 	@Override
 	public Iterator<State> iterator() {
@@ -109,10 +113,11 @@ public class StateSequence implements Sequence<State> {
 
 	@Override
 	public String toString() {
-		String string = "";
+		String string = "[";
 		for(State state : states)
-			string += state;
+			string += state + "  ";
 		
-		return string;
+		
+		return string.trim() + "]";
 	}
 }

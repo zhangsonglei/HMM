@@ -1,8 +1,5 @@
 package hust.tools.hmm.model;
 
-import java.util.Arrays;
-import java.util.List;
-
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
 
@@ -16,21 +13,21 @@ import hust.tools.hmm.utils.State;
  */
 public class Emission {
 	
-	private State[] states;
+	private State state;
 	
 	private Observation observation;
 	
 	public Emission(State state, Observation observation) {
-		this(new State[]{state}, observation);
-	}
-	
-	public Emission(List<State> states, Observation observation) {
-		this(states.toArray(new State[states.size()]), observation);
-	}
-	
-	public Emission(State[] states, Observation observation) {
-		this.states = states;
+		this.state = state;
 		this.observation = observation;
+	}
+	
+	public State getState() {
+		return state;
+	}
+	
+	public Observation getObservation() {
+		return observation;
 	}
 
 	public static long count(int[] numbers, int  k){
@@ -58,13 +55,13 @@ public class Emission {
             }
         }
     }
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((observation == null) ? 0 : observation.hashCode());
-		result = prime * result + Arrays.hashCode(states);
+		result = prime * result + ((state == null) ? 0 : state.hashCode());
 		return result;
 	}
 
@@ -82,17 +79,15 @@ public class Emission {
 				return false;
 		} else if (!observation.equals(other.observation))
 			return false;
-		if (!Arrays.equals(states, other.states))
+		if (state == null) {
+			if (other.state != null)
+				return false;
+		} else if (!state.equals(other.state))
 			return false;
 		return true;
 	}
 
 	public String toString() {
-		String string = "[";
-		for(State state : states) {
-			string += state + "  ";
-		}
-		
-		return string.trim() + "]" + "->" + observation;
+		return state + "->" + observation;
 	}
 }

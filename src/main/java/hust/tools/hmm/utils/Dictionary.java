@@ -1,8 +1,7 @@
 package hust.tools.hmm.utils;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Set;
 
 /**
  *<ul>
@@ -15,53 +14,53 @@ import java.util.Iterator;
 public class Dictionary {
 	
 	private static int observation_index;
-	private HashSet<Observation> observationToIndex;
+	private HashMap<Observation, Integer> observationToIndex;
 	private HashMap<Integer, Observation> indexToObservation;
 	
 	private static int state_index;
-	private HashSet<State> stateToIndex;
+	private HashMap<State, Integer> stateToIndex;
 	private HashMap<Integer, State> indexToState;
 	
 	public Dictionary() {
-		observationToIndex = new HashSet<>();
+		observationToIndex = new HashMap<>();
 		indexToObservation = new HashMap<>();
-		stateToIndex = new HashSet<>();
+		stateToIndex = new HashMap<>();
 		indexToState = new HashMap<>();
 		state_index = 0;
 		observation_index = 0;
 	}
 	
 	public State add(State state) {
-		if(!stateToIndex.contains(state)) {
+		if(!contain(state)) {
 			state.setIndex(state_index);
-			stateToIndex.add(state);
+			stateToIndex.put(state, state_index);
 			indexToState.put(state_index, state);
 			
 			state_index++;
 			return state;
-		}else 
-			return indexToState.get(state_index);
+		}else
+			return state.setIndex(stateToIndex.get(state));
 	}
 	
-	public StateSequence add(StateSequence states) {
-		for(int i = 0; i < states.size(); i++) {
-			State ns = add(states.get(i));
-			states.update(ns, i);
+	public StateSequence add(StateSequence sequence) {
+		for(int i = 0; i < sequence.size(); i++) {
+			State ns = add(sequence.get(i));
+			sequence.update(ns, i);
 		}
 		
-		return states;
+		return sequence;
 	}
 	
 	public Observation add(Observation observation) {
-		if(!observationToIndex.contains(observation)) {
+		if(!contain(observation)) {
 			observation.setIndex(observation_index);
-			observationToIndex.add(observation);
+			observationToIndex.put(observation, observation_index);
 			indexToObservation.put(observation_index, observation);
-			
 			observation_index++;
+			
 			return observation;
 		}else 
-			return indexToObservation.get(observation_index);
+			return observation.setIndex(observationToIndex.get(observation));
 	}
 	
 	public ObservationSequence add(ObservationSequence observations) {	
@@ -87,20 +86,20 @@ public class Dictionary {
 		return null;
 	}
 	
-	public Iterator<State> getStates() {
-		return stateToIndex.iterator();
+	public Set<State> getStates() {
+		return stateToIndex.keySet();
 	}
 	
-	public Iterator<Observation> getObservations() {
-		return observationToIndex.iterator();
+	public Set<Observation> getObservations() {
+		return observationToIndex.keySet();
 	}
 	
 	public boolean contain(State state) {
-		return stateToIndex.contains(state);
+		return stateToIndex.containsKey(state);
 	}
 	
 	public boolean contain(Observation observation) {
-		return observationToIndex.contains(observation);
+		return observationToIndex.containsKey(observation);
 	}
 	
 	public int stateCount() {
