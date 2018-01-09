@@ -102,4 +102,12 @@ public class EmissionEntry {
 		if(contain(observation))
 			emissionCount.remove(observation);
 	}
+	
+	/**
+	 * 返回发射的种类数量
+	 * @return	发射的种类数量
+	 */
+	public int size() {
+		return emissionCount.size();
+	}
 }

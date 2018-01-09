@@ -102,4 +102,12 @@ public class TransitionEntry {
 		if(contain(state))
 			transitionCount.remove(state);
 	}
+	
+	/**
+	 * 返回转移的种类数量
+	 * @return	转移的种类数量
+	 */
+	public int size() {
+		return transitionCount.size();
+	}
 }
