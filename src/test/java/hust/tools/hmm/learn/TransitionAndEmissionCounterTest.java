@@ -8,8 +8,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import hust.tools.hmm.model.Emission;
-import hust.tools.hmm.model.Transition;
+import hust.tools.hmm.learn.TransitionAndEmissionCounter;
 import hust.tools.hmm.pos.StringObservation;
 import hust.tools.hmm.pos.StringState;
 import hust.tools.hmm.stream.SupervisedHMMSample;
@@ -112,78 +111,71 @@ public class TransitionAndEmissionCounterTest {
 		counter.update(sample, order);
 		
 		State[] states = new StringState[]{new StringState("8"), new StringState("9"), new StringState("0")};
-		assertEquals(1, counter.getSequeceCount(new StateSequence(states)));
-		assertEquals(1, counter.getSequeceCount(new StateSequence(states23)));
-		assertEquals(3, counter.getSequeceCount(new StateSequence(new StringState("3"))));
+		assertEquals(1, counter.getSequenceCount(new StateSequence(states)));
+		assertEquals(1, counter.getSequenceCount(new StateSequence(states23)));
+		assertEquals(3, counter.getSequenceCount(new StateSequence(new StringState("3"))));
 		
 		
 		State target = new StringState("4");
-		Transition transition = new Transition(states23, target);
-		assertEquals(1, counter.getTransitionCount(transition));
+		assertEquals(1, counter.getTransitionCount(new StateSequence(states23), target));
 		
 		states = new StringState[]{new StringState("3")};
-		transition = new Transition(states, target);
-		assertEquals(2, counter.getTransitionCount(transition));
+		assertEquals(2, counter.getTransitionCount(new StateSequence(states), target));
 		
 		
 		
 		State state = new StringState("8");
 		Observation observation = new StringObservation("e");
-		assertEquals(2, counter.getEmissionCount(new Emission(state, observation)));
+		assertEquals(2, counter.getEmissionCount(state, observation));
 		
 		state = new StringState("5");
 		observation = new StringObservation("z");
-		assertEquals(0, counter.getEmissionCount(new Emission(state, observation)));
+		assertEquals(0, counter.getEmissionCount(state, observation));
 	}
 
 	@Test
 	public void testGetSequeceCount() {
 		State[] states = new StringState[]{new StringState("8"), new StringState("9"), new StringState("0")};
-		assertEquals(0, counter.getSequeceCount(new StateSequence(states)));
+		assertEquals(0, counter.getSequenceCount(new StateSequence(states)));
 		states = new StringState[]{new StringState("7"), new StringState("8"), new StringState("9"), new StringState("0")};
-		assertEquals(0, counter.getSequeceCount(new StateSequence(states)));
+		assertEquals(0, counter.getSequenceCount(new StateSequence(states)));
 		
-		assertEquals(1, counter.getSequeceCount(new StateSequence(states23)));
-		assertEquals(0, counter.getSequeceCount(new StateSequence(states36)));
-		assertEquals(2, counter.getSequeceCount(new StateSequence(new StringState("3"))));
+		assertEquals(1, counter.getSequenceCount(new StateSequence(states23)));
+		assertEquals(0, counter.getSequenceCount(new StateSequence(states36)));
+		assertEquals(2, counter.getSequenceCount(new StateSequence(new StringState("3"))));
 	}
 
 	@Test
 	public void testGetTransitionCount() {
 		State target = new StringState("4");
-		Transition transition = new Transition(states23, target);
-		assertEquals(1, counter.getTransitionCount(transition));
-		
-		transition = new Transition(states89, target);
-		assertEquals(0, counter.getTransitionCount(transition));
+		assertEquals(1, counter.getTransitionCount(new StateSequence(states23), target));
+		assertEquals(0, counter.getTransitionCount(new StateSequence(states89), target));
 		
 		State[] states = new StringState[]{new StringState("3")};
-		transition = new Transition(states, target);
-		assertEquals(1, counter.getTransitionCount(transition));
+		assertEquals(1, counter.getTransitionCount(new StateSequence(states), target));
 		
 		target = new StringState("7");
-		transition = new Transition(states36, target);
-		assertEquals(0, counter.getTransitionCount(transition));
+		assertEquals(0, counter.getTransitionCount(new StateSequence(states36), target));
 	}
 
 	@Test
 	public void testGetEmissionCount() {
 		State state = new StringState("8");
 		Observation observation = new StringObservation("e");
-		assertEquals(1, counter.getEmissionCount(new Emission(state, observation)));
+		assertEquals(1, counter.getEmissionCount(state, observation));
 		
 		state = new StringState("5");
 		observation = new StringObservation("z");
-		assertEquals(0, counter.getEmissionCount(new Emission(state, observation)));
+		assertEquals(0, counter.getEmissionCount(state, observation));
 		
 		observation = new StringObservation("c");
-		assertEquals(0, counter.getEmissionCount(new Emission(state, observation)));
+		assertEquals(0, counter.getEmissionCount(state, observation));
 		
 		state = new StringState("12");
-		assertEquals(0, counter.getEmissionCount(new Emission(state, observation)));
+		assertEquals(0, counter.getEmissionCount(state, observation));
 		
 		state = new StringState("3");
-		assertEquals(2, counter.getEmissionCount(new Emission(state, observation)));
+		assertEquals(2, counter.getEmissionCount(state, observation));
 	}
 
 	@Test
@@ -210,33 +202,29 @@ public class TransitionAndEmissionCounterTest {
 		State state = new StringState("9");
 		Observation observation = new StringObservation("i");
 		
-		assertTrue(counter.contain(new Emission(state, observation)));
+		assertTrue(counter.contain(state, observation));
 		
 		state = new StringState("5");
 		observation = new StringObservation("c");
-		assertFalse(counter.contain(new Emission(state, observation)));
+		assertFalse(counter.contain(state, observation));
 		
 		state = new StringState("12");
 		observation = new StringObservation("c");
-		assertFalse(counter.contain(new Emission(state, observation)));
+		assertFalse(counter.contain(state, observation));
 		
 		state = new StringState("5");
 		observation = new StringObservation("z");
-		assertFalse(counter.contain(new Emission(state, observation)));
+		assertFalse(counter.contain(state, observation));
 	}
 
 	@Test
 	public void testContainTransition() {
 		State target = new StringState("4");
-		Transition transition = new Transition(states23, target);
-		assertTrue(counter.contain(transition));
-		
-		transition = new Transition(states89, target);
-		assertFalse(counter.contain(transition));
+		assertTrue(counter.contain(new StateSequence(states23), target));
+		assertFalse(counter.contain(new StateSequence(states89), target));
 		
 		target = new StringState("7");
-		transition = new Transition(states36, target);
-		assertFalse(counter.contain(transition));
+		assertFalse(counter.contain(new StateSequence(states36), target));
 	}
 
 	@Test
@@ -245,10 +233,10 @@ public class TransitionAndEmissionCounterTest {
 
 		State state = new StringState("9");
 		Observation observation = new StringObservation("i");
-		assertFalse(counter.contain(new Emission(state, observation)));
+		assertFalse(counter.contain(state, observation));
 		
 		state = new StringState("3");
 		observation = new StringObservation("c");
-		assertEquals(2, counter.getEmissionCount(new Emission(state, observation)));
+		assertEquals(2, counter.getEmissionCount(state, observation));
 	}
 }

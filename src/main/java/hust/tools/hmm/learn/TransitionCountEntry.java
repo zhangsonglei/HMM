@@ -3,6 +3,7 @@ package hust.tools.hmm.learn;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import hust.tools.hmm.utils.State;
 
@@ -14,7 +15,7 @@ import hust.tools.hmm.utils.State;
  *<li>Date: 2018年1月8日
  *</ul>
  */
-public class TransitionEntry {
+public class TransitionCountEntry {
 	
 	/**
 	 * 转移的起始状态数量
@@ -26,11 +27,11 @@ public class TransitionEntry {
 	 */
 	private HashMap<State, Long> transitionCount;
 	
-	public TransitionEntry() {
+	public TransitionCountEntry() {
 		transitionCount = new HashMap<>();
 	}
 	
-	public TransitionEntry(long count, HashMap<State, Long> transitionCount) {
+	public TransitionCountEntry(long count, HashMap<State, Long> transitionCount) {
 		this.count = count;
 		this.transitionCount = transitionCount;
 	}
@@ -40,7 +41,7 @@ public class TransitionEntry {
 	 * @param count	数量大小
 	 * @return		更新数量后的实体
 	 */
-	public TransitionEntry setCount(long count) {
+	public TransitionCountEntry setCount(long count) {
 		this.count = count;
 		
 		return this;
@@ -90,8 +91,16 @@ public class TransitionEntry {
 	 * 返回转移状态计数的迭代器
 	 * @return	迭代器
 	 */
-	public Iterator<Entry<State, Long>> iterator() {
+	public Iterator<Entry<State, Long>> entryIterator() {
 		return transitionCount.entrySet().iterator();
+	}
+	
+	public Iterator<State> keyIterator() {
+		return transitionCount.keySet().iterator();
+	}
+	
+	public Set<State> getStates() {
+		return transitionCount.keySet();
 	}
 	
 	/**

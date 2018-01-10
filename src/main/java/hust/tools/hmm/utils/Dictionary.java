@@ -1,7 +1,7 @@
 package hust.tools.hmm.utils;
 
 import java.util.HashMap;
-import java.util.Set;
+import java.util.Iterator;
 
 /**
  *<ul>
@@ -43,9 +43,9 @@ public class Dictionary {
 	}
 	
 	public StateSequence add(StateSequence sequence) {
-		for(int i = 0; i < sequence.size(); i++) {
+		for(int i = 0; i < sequence.length(); i++) {
 			State ns = add(sequence.get(i));
-			sequence.update(ns, i);
+			sequence = sequence.set(ns, i);
 		}
 		
 		return sequence;
@@ -64,9 +64,9 @@ public class Dictionary {
 	}
 	
 	public ObservationSequence add(ObservationSequence observations) {	
-		for(int i = 0; i < observations.size(); i++) {
+		for(int i = 0; i < observations.length(); i++) {
 			Observation no = add(observations.get(i));
-			observations.update(no, i);
+			observations = observations.set(no, i);
 		}
 		
 		return observations;
@@ -86,12 +86,12 @@ public class Dictionary {
 		return null;
 	}
 	
-	public Set<State> getStates() {
-		return stateToIndex.keySet();
+	public Iterator<State> statesIterator() {
+		return stateToIndex.keySet().iterator();
 	}
 	
-	public Set<Observation> getObservations() {
-		return observationToIndex.keySet();
+	public Iterator<Observation> observationsIterator() {
+		return observationToIndex.keySet().iterator();
 	}
 	
 	public boolean contain(State state) {

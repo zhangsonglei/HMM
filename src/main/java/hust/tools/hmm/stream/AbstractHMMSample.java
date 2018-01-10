@@ -28,11 +28,11 @@ public abstract class AbstractHMMSample {
 	}
 	
 	public void add(Observation observation) {
-		observationSequence.add(observation);
+		observationSequence = observationSequence.add(observation);
 	}
 	
 	public Observation getObservationState(int i) {
-		if(i >= 0 && i < observationSequence.size())
+		if(i >= 0 && i < observationSequence.length())
 			return observationSequence.get(i);
 		
 		return null;

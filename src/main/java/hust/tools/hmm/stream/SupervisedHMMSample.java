@@ -16,16 +16,12 @@ import hust.tools.hmm.utils.State;
 public class SupervisedHMMSample extends AbstractHMMSample {
 	
 	private StateSequence stateSequence;
-		
+	
 	public SupervisedHMMSample() {
 		super();
 		stateSequence = new StateSequence();
 	}
-	
-	public SupervisedHMMSample(ObservationSequence observationSequence) {
-		super(observationSequence);
-	}
-	
+
 	public SupervisedHMMSample(StateSequence stateSequence, ObservationSequence observationSequence) {
 		super(observationSequence);
 		this.stateSequence = stateSequence;
@@ -36,12 +32,12 @@ public class SupervisedHMMSample extends AbstractHMMSample {
 	}
 
 	public void add(State state, Observation observation) {
-		stateSequence.add(state);
+		stateSequence = stateSequence.add(state);
 		add(observation);
 	}
 	
 	public State getState(int i) {
-		if(i >= 0 && i < stateSequence.size())
+		if(i >= 0 && i < stateSequence.length())
 			return stateSequence.get(i);
 		
 		return null;
@@ -76,7 +72,7 @@ public class SupervisedHMMSample extends AbstractHMMSample {
 	public String toString() {
 		String string = "[";
 		
-		for(int i = 0; i < observationSequence.size(); i++)
+		for(int i = 0; i < observationSequence.length(); i++)
 			string += "[" + observationSequence.get(i) + ", " + stateSequence.get(i) + "]" + "  ";
 		
 		return string.trim() + "]";

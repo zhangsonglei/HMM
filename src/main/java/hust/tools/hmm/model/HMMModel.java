@@ -3,8 +3,7 @@ package hust.tools.hmm.model;
 import hust.tools.hmm.utils.StateSequence;
 
 import java.util.HashMap;
-import java.util.Set;
-
+import java.util.Iterator;
 import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.ObservationSequence;
@@ -22,13 +21,13 @@ public class HMMModel implements HMM {
 	
 	private Dictionary dict;
 	
-	private double[] pi;
+	private HashMap<State, Double> pi;
 	
-	private HashMap<Emission, ProbBowEntry>  transitionMatrix;
+	private HashMap<StateSequence, TransitionProbEntry>  transitionMatrix;
 	
-	private HashMap<Transition, ProbBowEntry>  emissionMatrix;
+	private HashMap<State, EmissionProbEntry>  emissionMatrix;
 	
-	public HMMModel(Dictionary dict, double[] pi, HashMap<Emission, ProbBowEntry>  transitionMatrix, HashMap<Transition, ProbBowEntry>  emissionMatrix) {
+	public HMMModel(Dictionary dict, HashMap<State, Double> pi, HashMap<StateSequence, TransitionProbEntry>  transitionMatrix, HashMap<State, EmissionProbEntry>  emissionMatrix) {
 		this.dict = dict;
 		this.pi = pi;
 		this.transitionMatrix = transitionMatrix;
@@ -53,9 +52,8 @@ public class HMMModel implements HMM {
 	
 	@Override
 	public double transitionProb(StateSequence si, State sj) {
-		Transition transition = new Transition(si.toArray(), sj);
 		
-		return transitionMatrix.get(transition).getProb();
+		return transitionMatrix.get(si).getTransitionLogBow(sj);
 	}
 	
 	public double transitionProb(int i, int j) {	
@@ -67,9 +65,8 @@ public class HMMModel implements HMM {
 
 	@Override
 	public double emissionProb(State state, Observation observation) {
-		Emission emission = new Emission(state, observation);
 		
-		return emissionMatrix.get(emission).getProb();
+		return emissionMatrix.get(state).getEmissionLogProb(observation);
 	}
 	
 	public double emissionProb(int i, int t) {
@@ -81,16 +78,26 @@ public class HMMModel implements HMM {
 
 	@Override
 	public Observation[] getObservationStates() {
-		Set<Observation> set = dict.getObservations();
+		Iterator<Observation> iterator = dict.observationsIterator();
+		Observation[] observations = new Observation[dict.observationCount()];
+		int i = 0;
+		while(iterator.hasNext()) {
+			observations[i++] = iterator.next();
+		}
 		
-		return set.toArray(new Observation[set.size()]);
+		return observations;
 	}
 
 	@Override
 	public State[] getStates() {
-		Set<State> set = dict.getStates();
+		Iterator<State> iterator = dict.statesIterator();
+		State[] states = new State[dict.stateCount()];
+		int i = 0;
+		while(iterator.hasNext()) {
+			states[i++] = iterator.next();
+		}
 		
-		return set.toArray(new State[set.size()]);
+		return states;
 	}
 
 	@Override
@@ -100,11 +107,11 @@ public class HMMModel implements HMM {
 
 	@Override
 	public double getPi(State state) {		
-		return pi[state.getIndex()];
+		return pi.get(state);
 	}
 	
 	public double getPi(int i) {		
-		return pi[i];
+		return getPi(dict.getState(i));
 	}
 	
 	public Observation getObservation(int i) {

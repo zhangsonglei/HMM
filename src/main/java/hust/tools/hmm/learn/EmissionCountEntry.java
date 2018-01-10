@@ -3,6 +3,7 @@ package hust.tools.hmm.learn;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import hust.tools.hmm.utils.Observation;
 
@@ -14,7 +15,7 @@ import hust.tools.hmm.utils.Observation;
  *<li>Date: 2018年1月8日
  *</ul>
  */
-public class EmissionEntry {
+public class EmissionCountEntry {
 
 	/**
 	 * 发射的起始状态数量
@@ -26,11 +27,11 @@ public class EmissionEntry {
 	 */
 	private HashMap<Observation, Long> emissionCount;
 	
-	public EmissionEntry() {
+	public EmissionCountEntry() {
 		emissionCount = new HashMap<>();
 	}
 	
-	public EmissionEntry(long count, HashMap<Observation, Long> emissionCount) {
+	public EmissionCountEntry(long count, HashMap<Observation, Long> emissionCount) {
 		this.count = count;
 		this.emissionCount = emissionCount;
 	}
@@ -40,7 +41,7 @@ public class EmissionEntry {
 	 * @param count	数量大小
 	 * @return		更新数量后的实体
 	 */
-	public EmissionEntry setCount(long count) {
+	public EmissionCountEntry setCount(long count) {
 		this.count = count;
 		
 		return this;
@@ -90,8 +91,16 @@ public class EmissionEntry {
 	 * 返回发射观测计数的迭代器
 	 * @return	迭代器
 	 */
-	public Iterator<Entry<Observation, Long>> iterator() {
+	public Iterator<Entry<Observation, Long>> entryIterator() {
 		return emissionCount.entrySet().iterator();
+	}
+	
+	public Iterator<Observation> keyIterator() {
+		return emissionCount.keySet().iterator();
+	}
+	
+	public Set<Observation> getObservations() {
+		return emissionCount.keySet();
 	}
 	
 	/**

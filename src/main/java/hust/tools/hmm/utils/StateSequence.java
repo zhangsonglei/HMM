@@ -1,7 +1,6 @@
 package hust.tools.hmm.utils;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -14,83 +13,125 @@ import java.util.List;
  */
 public class StateSequence implements Sequence<State> {
 	
-	private List<State> states;
+	private State[] states;
 	
 	public StateSequence() {
-		states = new ArrayList<>();
+		states = null;
 	}
 	
 	public StateSequence(State[] states) {
-		this.states = new ArrayList<>();
-
-		for(State state : states)
-			this.states.add(state);
-	}
-	
-	public StateSequence(List<State> states) {
 		this.states = states;
 	}
 	
+	public StateSequence(List<State> states) {
+		if(states.size() == 0)
+			throw new IllegalArgumentException("状态列表不能为空");
+		
+		this.states = states.toArray(new State[states.size()]);
+	}
+	
 	public StateSequence(State state) {
-		this.states = new ArrayList<>();
-		this.states.add(state);
+		this.states = new State[]{state};
 	}
 
 	@Override
-	public void add(State state) {
-		states.add(state);
+	public StateSequence add(State state) {
+		if(states == null)
+			return new StateSequence(state);
+		
+		State[] arr = new State[length() + 1];
+		int i = 0;
+		for(i = 0; i < length(); i++)
+			arr[i] = states[i];
+		
+		arr[i] = state;
+		
+		return new StateSequence(arr);
 	}
 	
 	@Override
-	public void add(State[] states) {
-		for(State state : states)
-			this.states.add(state);
+	public StateSequence add(State[] states) {
+		if(states == null)
+			return new StateSequence(states);
+		
+		State[] arr = new State[length() + states.length];
+		int i = 0;
+		for(i = 0; i < length(); i++)
+			arr[i] = states[i];
+		
+		for(int j = 0; j < states.length; j++)
+			arr[i++] = states[j];
+		
+		return new StateSequence(arr);
 	}
 
 	@Override
-	public void remove(int index) {
-		if(index >= 0 && index < states.size() - 1)
-			states.remove(index);
+	public StateSequence remove(int index) {
+		if(length() <= 1)
+			return null;
+		
+		State[] arr = new State[length() - 1];
+		for(int i = 0; i < arr.length; i++)
+			arr[i] = states[i];
+		
+		return new StateSequence(arr);
 	}
 
 	@Override
-	public void update(State token, int index) {
-		if(index >= 0 && index < states.size() - 1)
-			states.set(index, token);
+	public StateSequence set(State state, int index) {
+		if(index < 0 || index >= length())
+			throw new IllegalArgumentException("索引:" + index +"大于状态序列长度:" + length());
+		
+		State[] arr = new State[length()];
+		if(index >= 0 && index < length()) {
+			for(int i = 0; i < length(); i++) {
+				if(i == index)
+					arr[i] = state;
+				else
+					arr[i] = states[i];
+			}
+		}
+		
+		return new StateSequence(arr);
 	}
 	
 	@Override
 	public State get(int index) {
-		if(index >= 0 && index < states.size())
-			return states.get(index);
+		if(index >= 0 && index < length())
+			return states[index];
 		
 		return null;
 	}
 
 	@Override
-	public List<State> get() {
-		return states;
+	public List<State> asList() {
+		if(length() != 0)
+			return Arrays.asList(states);
+		
+		return null;
 	}
 	
+	@Override
 	public State[] toArray() {
-		return states.toArray(new State[size()]);
+		if(length() != 0)
+			return states;
+		
+		return null;
+	}
+	
+	@Override
+	public int length() {
+		if(states != null)
+			return states.length;
+		
+		return 0;
 	}
 
-	@Override
-	public Iterator<State> iterator() {
-		return states.iterator();
-	}
-	
-	@Override
-	public int size() {
-		return states.size();
-	}
-	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((states == null) ? 0 : states.hashCode());
+		result = prime * result + Arrays.hashCode(states);
 		return result;
 	}
 
@@ -103,10 +144,7 @@ public class StateSequence implements Sequence<State> {
 		if (getClass() != obj.getClass())
 			return false;
 		StateSequence other = (StateSequence) obj;
-		if (states == null) {
-			if (other.states != null)
-				return false;
-		} else if (!states.equals(other.states))
+		if (!Arrays.equals(states, other.states))
 			return false;
 		return true;
 	}
@@ -116,7 +154,6 @@ public class StateSequence implements Sequence<State> {
 		String string = "[";
 		for(State state : states)
 			string += state + "  ";
-		
 		
 		return string.trim() + "]";
 	}

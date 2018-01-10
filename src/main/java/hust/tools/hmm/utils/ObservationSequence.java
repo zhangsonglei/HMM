@@ -1,7 +1,6 @@
 package hust.tools.hmm.utils;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -14,79 +13,125 @@ import java.util.List;
  */
 public class ObservationSequence implements Sequence<Observation> {
 	
-	private List<Observation> observations;
+	private Observation[] observations;
 	
 	public ObservationSequence() {
-		observations = new ArrayList<>();
+		observations = null;
 	}
 	
 	public ObservationSequence(Observation[] observations) {
-		this.observations = new ArrayList<>();
-
-		for(Observation observation : observations)
-			this.observations.add(observation);
-	}
-	
-	public ObservationSequence(List<Observation> observations) {
 		this.observations = observations;
 	}
 	
+	public ObservationSequence(List<Observation> observations) {
+		if(observations.size() == 0)
+			throw new IllegalArgumentException("观测列表不能为空");
+		
+		this.observations = observations.toArray(new Observation[observations.size()]);
+	}
+	
 	public ObservationSequence(Observation observation) {
-		observations = new ArrayList<>();
-		observations.add(observation);
+		this.observations = new Observation[]{observation};
 	}
 
 	@Override
-	public void add(Observation observation) {
-		observations.add(observation);
+	public ObservationSequence add(Observation observation) {
+		if(observations == null)
+			return new ObservationSequence(observation);
+		
+		Observation[] arr = new Observation[length() + 1];
+		int i = 0;
+		for(i = 0; i < length(); i++)
+			arr[i] = observations[i];
+		
+		arr[i] = observation;
+		
+		return new ObservationSequence(arr);
 	}
 	
 	@Override
-	public void add(Observation[] observations) {
-		for(Observation observation : observations)
-			this.observations.add(observation);
+	public ObservationSequence add(Observation[] observations) {
+		if(observations == null)
+			return new ObservationSequence(observations);
+		
+		Observation[] arr = new Observation[length() + observations.length];
+		int i = 0;
+		for(i = 0; i < length(); i++)
+			arr[i] = observations[i];
+		
+		for(int j = 0; j < observations.length; j++)
+			arr[i++] = observations[j];
+		
+		return new ObservationSequence(arr);
 	}
 
 	@Override
-	public void remove(int index) {
-		if(index >= 0 && index < observations.size() - 1)
-			observations.remove(index);
+	public ObservationSequence remove(int index) {
+		if(length() <= 1)
+			return null;
+		
+		Observation[] arr = new Observation[length() - 1];
+		for(int i = 0; i < arr.length; i++)
+			arr[i] = observations[i];
+		
+		return new ObservationSequence(arr);
+	}
+
+	@Override
+	public ObservationSequence set(Observation observation, int index) {
+		if(index < 0 || index >= length())
+			throw new IllegalArgumentException("");
+		
+		Observation[] arr = new Observation[length()];
+		if(index >= 0 && index < length()) {
+			for(int i = 0; i < length(); i++) {
+				if(i == index)
+					arr[i] = observation;
+				else
+					arr[i] = observations[i];
+			}
+		}
+		
+		return new ObservationSequence(arr);
 	}
 	
-	@Override
-	public void update(Observation token, int index) {
-		if(index >= 0 && index < observations.size() - 1)
-			observations.set(index, token);
-	}
-
 	@Override
 	public Observation get(int index) {
-		if(index >= 0 && index < observations.size())
-			return observations.get(index);
+		if(index >= 0 && index < length())
+			return observations[index];
 		
 		return null;
 	}
 
 	@Override
-	public List<Observation> get() {
-		return observations;
+	public List<Observation> asList() {
+		if(length() != 0)
+			return Arrays.asList(observations);
+		
+		return null;
+	}
+	
+	@Override
+	public Observation[] toArray() {
+		if(length() != 0)
+			return observations;
+		
+		return null;
+	}
+	
+	@Override
+	public int length() {
+		if(observations != null)
+			return observations.length;
+		
+		return 0;		
 	}
 
-	@Override
-	public Iterator<Observation> iterator() {
-		return observations.iterator();
-	}
-	
-	@Override
-	public int size() {
-		return observations.size();
-	}
-	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((observations == null) ? 0 : observations.hashCode());
+		result = prime * result + Arrays.hashCode(observations);
 		return result;
 	}
 
@@ -99,20 +144,17 @@ public class ObservationSequence implements Sequence<Observation> {
 		if (getClass() != obj.getClass())
 			return false;
 		ObservationSequence other = (ObservationSequence) obj;
-		if (observations == null) {
-			if (other.observations != null)
-				return false;
-		} else if (!observations.equals(other.observations))
+		if (!Arrays.equals(observations, other.observations))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		String string = "";
+		String string = "[";
 		for(Observation observation : observations)
-			string += observation;
+			string += observation + "  ";
 		
-		return string;
+		return string.trim() + "]";
 	}
 }

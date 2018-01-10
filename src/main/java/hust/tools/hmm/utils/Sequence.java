@@ -1,6 +1,5 @@
 package hust.tools.hmm.utils;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -14,21 +13,21 @@ import java.util.List;
  */
 public interface Sequence<T> {
     
-    public void add(T token);
+    public Sequence<T> add(T token);
     
-    public void add(T[] tokens);
+    public Sequence<T> add(T[] tokens);
     
-    public void update(T token, int index);
+    public Sequence<T> set(T token, int index);
     
-    public void remove(int index);
+    public Sequence<T> remove(int index);
     
     public T get(int index);
     
-    public List<T> get();
+    public List<T> asList();
     
-    public Iterator<T> iterator();
+    public T[] toArray();
     
-    public int size();
+    public int length();
     
     @Override
 	public int hashCode();

@@ -11,11 +11,11 @@ import hust.tools.hmm.utils.ObservationSequence;
  *</ul>
  */
 public class UnsupervisedHMMSample extends AbstractHMMSample {
-
-	public UnsupervisedHMMSample() {
-		super();
-	}
 	
+	public UnsupervisedHMMSample() {
+
+	}
+
 	public UnsupervisedHMMSample(ObservationSequence observationSequence) {
 		super(observationSequence);
 	}
@@ -24,7 +24,7 @@ public class UnsupervisedHMMSample extends AbstractHMMSample {
 	public String toString() {
 		String string = "[";
 		
-		for(int i = 0; i < observationSequence.size(); i++)
+		for(int i = 0; i < observationSequence.length(); i++)
 			string += observationSequence.get(i) + "  ";
 		
 		return string.trim() + "]";

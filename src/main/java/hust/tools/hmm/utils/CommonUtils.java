@@ -14,7 +14,7 @@ public class CommonUtils {
 	public static List<State[]> generate(Sequence<State> input, int n)  {
 		List<State[]> output = new ArrayList<>();
 		
-		for(int i = 0; i < input.size() - n + 1; i++) {
+		for(int i = 0; i < input.length() - n + 1; i++) {
 			State[] ngram = new State[n];
 			for(int j = i, index = 0; j < i + n; j++, index++)
 				ngram[index] = input.get(j);
