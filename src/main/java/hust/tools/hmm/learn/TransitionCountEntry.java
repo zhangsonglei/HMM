@@ -20,7 +20,7 @@ public class TransitionCountEntry {
 	/**
 	 * 转移的起始状态数量
 	 */
-	private long count;
+	private long total;
 	
 	/**
 	 * 转移到某个状态的数量
@@ -28,31 +28,22 @@ public class TransitionCountEntry {
 	private HashMap<State, Long> transitionCount;
 	
 	public TransitionCountEntry() {
+		total = 0;
 		transitionCount = new HashMap<>();
 	}
 	
-	public TransitionCountEntry(long count, HashMap<State, Long> transitionCount) {
-		this.count = count;
+	public TransitionCountEntry(HashMap<State, Long> transitionCount) {
+		total = 0;
 		this.transitionCount = transitionCount;
 	}
 	
-	/**
-	 * 设置转移的起始状态数量
-	 * @param count	数量大小
-	 * @return		更新数量后的实体
-	 */
-	public TransitionCountEntry setCount(long count) {
-		this.count = count;
-		
-		return this;
-	}
 	
 	/**
 	 * 返回转移的起始状态数量
 	 * @return	数量大小
 	 */
-	public long getCount() {
-		return count;
+	public long getTotal() {
+		return total;
 	}
 	
 	/**
@@ -64,6 +55,8 @@ public class TransitionCountEntry {
 			transitionCount.put(state, transitionCount.get(state) + 1);
 		else
 			transitionCount.put(state, 1L);
+		
+		total++;
 	}
 	
 	/**
@@ -79,7 +72,7 @@ public class TransitionCountEntry {
 	}
 	
 	/**
-	 * 返回是否包含目标状态state
+	 * 返回该转移是否包含目标状态state
 	 * @param state	转移目标状态
 	 * @return		true-包含/false-不包含
 	 */
@@ -88,17 +81,25 @@ public class TransitionCountEntry {
 	}
 	
 	/**
-	 * 返回转移状态计数的迭代器
-	 * @return	迭代器
+	 * 返回该转移的目标状态计数的迭代器
+	 * @return	该转移的目标状态计数的迭代器
 	 */
 	public Iterator<Entry<State, Long>> entryIterator() {
 		return transitionCount.entrySet().iterator();
 	}
 	
-	public Iterator<State> keyIterator() {
+	/**
+	 * 返回该转移的所有目标状态迭代器
+	 * @return	该转移的所有目标状态迭代器
+	 */
+	public Iterator<State> statesIterator() {
 		return transitionCount.keySet().iterator();
 	}
 	
+	/**
+	 * 返回该转移的所有目标状态集合
+	 * @return	该转移的所有目标状态集合
+	 */
 	public Set<State> getStates() {
 		return transitionCount.keySet();
 	}
@@ -108,13 +109,15 @@ public class TransitionCountEntry {
 	 * @param state	待删除的目标状态
 	 */
 	public void remove(State state) {
-		if(contain(state))
+		if(contain(state)) {
+			total -= getTransitionCount(state);
 			transitionCount.remove(state);
+		}
 	}
 	
 	/**
-	 * 返回转移的种类数量
-	 * @return	转移的种类数量
+	 * 返回该转移的目标状态种类数量
+	 * @return	该转移的目标状态种类数量
 	 */
 	public int size() {
 		return transitionCount.size();

@@ -33,7 +33,7 @@ public class TransitionProbEntry {
 	 * 增加或修改给定目标转移状态的概率及回退权重
 	 * @param state	转移到的目标状态
 	 */
-	public void set(State state, ARPAEntry entry) {
+	public void put(State state, ARPAEntry entry) {
 		transitionProb.put(state, entry);
 	}
 	

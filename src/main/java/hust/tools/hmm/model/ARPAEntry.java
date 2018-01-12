@@ -25,8 +25,8 @@ public class ARPAEntry implements Serializable{
 		return log_prob;
 	}
 
-	public void setLog_bo(double log_bo) {
-		this.log_bo = log_bo;
+	public ARPAEntry setLog_bo(double log_bo) {
+		return new ARPAEntry(log_prob, log_bo);
 	}
 	
 	public double getLog_bo() {

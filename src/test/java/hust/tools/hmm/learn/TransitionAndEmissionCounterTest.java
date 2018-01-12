@@ -9,8 +9,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import hust.tools.hmm.learn.TransitionAndEmissionCounter;
-import hust.tools.hmm.pos.StringObservation;
-import hust.tools.hmm.pos.StringState;
+import hust.tools.hmm.utils.StringObservation;
+import hust.tools.hmm.utils.StringState;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.ObservationSequence;
@@ -27,8 +27,7 @@ import hust.tools.hmm.utils.StateSequence;
  */
 public class TransitionAndEmissionCounterTest {
 	
-	private short order;
-	private short cutoff;
+	private int order;
 	private List<SupervisedHMMSample> samples;
 	private TransitionAndEmissionCounter counter;
 
@@ -62,7 +61,6 @@ public class TransitionAndEmissionCounterTest {
 		
 		
 		order = 3;
-		cutoff = 0;
 		samples = new ArrayList<>();
 		StateSequence stateSequence = null;
 		ObservationSequence observationSequence = null;
@@ -103,15 +101,15 @@ public class TransitionAndEmissionCounterTest {
 		observationSequence = new ObservationSequence(observations);
 		samples.add(new SupervisedHMMSample(stateSequence, observationSequence));
 		
-		counter = new TransitionAndEmissionCounter(samples, order, cutoff);
+		counter = new TransitionAndEmissionCounter(samples, order);
 	}
 
 	@Test
 	public void testUpdate() {
-		counter.update(sample, order);
+		counter.update(sample);
 		
 		State[] states = new StringState[]{new StringState("8"), new StringState("9"), new StringState("0")};
-		assertEquals(1, counter.getSequenceCount(new StateSequence(states)));
+		assertEquals(0, counter.getSequenceCount(new StateSequence(states)));
 		assertEquals(1, counter.getSequenceCount(new StateSequence(states23)));
 		assertEquals(3, counter.getSequenceCount(new StateSequence(new StringState("3"))));
 		
@@ -186,6 +184,16 @@ public class TransitionAndEmissionCounterTest {
 	}
 
 	@Test
+	public void testContainTransition() {
+		State target = new StringState("4");
+		assertTrue(counter.contain(new StateSequence(states23), target));
+		assertFalse(counter.contain(new StateSequence(states89), target));
+		
+		target = new StringState("7");
+		assertFalse(counter.contain(new StateSequence(states36), target));
+	}
+	
+	@Test
 	public void testContainState() {
 		State state = new StringState("9");
 		assertTrue(counter.contain(state));
@@ -201,7 +209,6 @@ public class TransitionAndEmissionCounterTest {
 	public void testContainEmission() {
 		State state = new StringState("9");
 		Observation observation = new StringObservation("i");
-		
 		assertTrue(counter.contain(state, observation));
 		
 		state = new StringState("5");
@@ -215,28 +222,5 @@ public class TransitionAndEmissionCounterTest {
 		state = new StringState("5");
 		observation = new StringObservation("z");
 		assertFalse(counter.contain(state, observation));
-	}
-
-	@Test
-	public void testContainTransition() {
-		State target = new StringState("4");
-		assertTrue(counter.contain(new StateSequence(states23), target));
-		assertFalse(counter.contain(new StateSequence(states89), target));
-		
-		target = new StringState("7");
-		assertFalse(counter.contain(new StateSequence(states36), target));
-	}
-
-	@Test
-	public void testCutoff() {
-		counter.cutoff(2);
-
-		State state = new StringState("9");
-		Observation observation = new StringObservation("i");
-		assertFalse(counter.contain(state, observation));
-		
-		state = new StringState("3");
-		observation = new StringObservation("c");
-		assertEquals(2, counter.getEmissionCount(state, observation));
 	}
 }

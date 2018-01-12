@@ -9,18 +9,6 @@ package hust.tools.hmm.utils;
  *</ul>
  */
 public interface State {
-
-	/**
-	 * 赋予隐藏状态索引值
-	 * @param index	索引值
-	 */
-	public State setIndex(int index);
-	
-	/**
-	 * 返回隐藏状态的索引值
-	 * @return	索引值
-	 */
-	public int getIndex();
 	
 	/**
 	 * 返回隐藏状态的哈希码，该哈希码只计算状态不包含索引

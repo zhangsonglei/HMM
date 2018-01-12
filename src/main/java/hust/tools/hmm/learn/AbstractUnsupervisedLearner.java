@@ -7,7 +7,6 @@ import java.util.List;
 import hust.tools.hmm.model.HMMModel;
 import hust.tools.hmm.stream.UnsupervisedHMMSample;
 import hust.tools.hmm.stream.UnsupervisedHMMSampleStream;
-import hust.tools.hmm.utils.Dictionary;
 
 /**
  *<ul>
@@ -22,10 +21,6 @@ public abstract class AbstractUnsupervisedLearner extends AbstractLearner {
 	
 	public AbstractUnsupervisedLearner() {
 		super();
-	}
-	
-	public AbstractUnsupervisedLearner(Dictionary dict) {
-		super(dict);
 	}
 	
 	/**

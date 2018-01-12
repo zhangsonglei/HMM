@@ -20,7 +20,7 @@ public interface HMM {
 	 * @param observation	观测状态序列
 	 * @return				最优隐藏序列
 	 */
-	public StateSequence bestStateSeqence(ObservationSequence observations);
+	public StateSequence bestStateSeqence(ObservationSequence observations, int order);
 	
 	/**
 	 * 返回给定观测状态序列的k个最优隐藏序列(优先顺序从大到小)
@@ -28,14 +28,14 @@ public interface HMM {
 	 * @param k				返回状态序列的个数
 	 * @return				k个最优隐藏序列
 	 */
-	public StateSequence[] bestKStateSeqence(ObservationSequence observations, int k);
+	public StateSequence[] bestKStateSeqence(ObservationSequence observations, int order, int k);
 	
 	/**
 	 * 返回给定观测状态序列的最大似然估计
 	 * @param observation	观测状态序列
 	 * @return	最大似然估计
 	 */
-	public double getProb(ObservationSequence observations);
+	public double getProb(ObservationSequence observations, int order);
 	
 	/**
 	 * 返回给定隐藏状态的初始转移概率
@@ -50,7 +50,7 @@ public interface HMM {
 	 * @param hidden		隐藏状态序列
 	 * @return
 	 */
-	public double getProb(ObservationSequence observations, StateSequence states);
+	public double getProb(ObservationSequence observations, StateSequence states, int order);
 	
 	/**
 	 * 返回隐藏状态i到j的转移概率
@@ -58,7 +58,7 @@ public interface HMM {
 	 * @param j	目的隐藏状态
 	 * @return	转移概率
 	 */
-	public double transitionProb(StateSequence i, State j);
+	public double transitionProb(StateSequence start, State target);
 	
 	/**
 	 * 返回隐藏状态i到观测状态t的发射概率
@@ -72,7 +72,7 @@ public interface HMM {
 	 * 返回所有观测状态
 	 * @return	观测状态
 	 */
-	public Observation[] getObservationStates();
+	public Observation[] getObservations();
 	
 	/**
 	 * 返回所有隐藏状态

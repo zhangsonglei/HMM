@@ -1,6 +1,5 @@
 package hust.tools.hmm.learn;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -11,10 +10,10 @@ import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMMModel;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
-import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
 import hust.tools.hmm.utils.StateSequence;
+import hust.tools.hmm.utils.StringObservation;
 
 /**
  *<ul>
@@ -26,67 +25,44 @@ import hust.tools.hmm.utils.StateSequence;
  */
 public abstract class AbstractSupervisedLearner extends AbstractLearner {
 	
+	private final Observation UNKNOWN = new StringObservation("UNKNOWN");
+	
 	protected TransitionAndEmissionCounter counter;
 
 	public AbstractSupervisedLearner(TransitionAndEmissionCounter counter) {
 		super();
 		this.counter = counter;
+		this.order = counter.getOrder();
 	}
 	
-	public AbstractSupervisedLearner(Dictionary dict, TransitionAndEmissionCounter counter) {
-		super(dict);
-		this.counter = counter;
+	public AbstractSupervisedLearner(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
+		this.counter = new TransitionAndEmissionCounter(sampleStream, order);
+		this.order = order;
 	}
 	
-	public AbstractSupervisedLearner(SupervisedHMMSampleStream<?> sampleStream, int order, int cutoff) throws IOException {
-		this.counter = new TransitionAndEmissionCounter(sampleStream, order, cutoff);
+	public AbstractSupervisedLearner(List<SupervisedHMMSample> samples,  int order) {
+		this.counter = new TransitionAndEmissionCounter(samples, order);
+		this.order = order;
 	}
 	
-	public AbstractSupervisedLearner(List<SupervisedHMMSample> samples,  int order, int cutoff) {
-		this.counter = new TransitionAndEmissionCounter(samples, order, cutoff);
-	}
-	
-	/**
-	 * 根据转移发射计数器训练HMM模型
-	 * @param counter	转移发射计数器
-	 * @param modelFile	模型写出路径
-	 * @return			HMM模型
-	 */
-	public HMMModel train(File modelFile) {
-		calcPi(counter);
-		calcTransitionMatrix(counter);
-		calcEmissionMatrix(counter);
-		
-		HMMModel model = new HMMModel(dict, pi, transitionMatrix, emissionMatrix);
-		
-		if(modelFile != null)
-			writeModel(model, modelFile);
-		
-		return model;
-	}
-	
-	public HMMModel train() {		
-		return train(null);
-	}
+	public abstract HMMModel train();
 	
 	/**
 	 * 计算初始概率矩阵
 	 * @param counter	转移发射计数器
 	 */	
-	private void calcPi(TransitionAndEmissionCounter counter) {
-		Iterator<State> iterator = dict.statesIterator();
-		long count = 0;
-		double prob = 0;
+	protected void calcPi(TransitionAndEmissionCounter counter) {
+		Iterator<State> iterator = counter.getDictionary().statesIterator();
 		double normalization = 0;	//归一化因子
 		State state = null;
 		while(iterator.hasNext()) {
 			state = iterator.next();
-			count = counter.getSequenceCount(new StateSequence(state));
+			long count = counter.getSequenceCount(new StateSequence(state));
 			
-			if(count != 0) {
-				prob = count / counter.getTotalStatesCount();
+			if(count != 0L) {
+				double prob = 1.0 * count / counter.getTotalStatesCount();
 				normalization += prob;
-				pi.put(state, prob);
+				pi.put(state, new ARPAEntry(prob, 0));
 			}
 		}
 		
@@ -95,8 +71,16 @@ public abstract class AbstractSupervisedLearner extends AbstractLearner {
 		double logProb = 0;
 		while (iterator.hasNext()) {
 			state = iterator.next();
-			logProb = Math.log10(pi.get(state) / normalization);
-			pi.put(state, logProb);
+			logProb = Math.log10(pi.get(state).getLog_prob() / normalization);
+			pi.put(state, new ARPAEntry(logProb, 0));
+		}
+		
+		//计算回退权重
+		iterator = pi.keySet().iterator();
+		while (iterator.hasNext()) {
+			state = iterator.next();
+			double logBow = Math.log10(calcBOW(new StateSequence(state)));
+			pi.put(state, pi.get(state).setLog_bo(logBow));
 		}
 	}
 	
@@ -107,26 +91,31 @@ public abstract class AbstractSupervisedLearner extends AbstractLearner {
 	protected abstract void calcTransitionMatrix(TransitionAndEmissionCounter counter);
 		
 	/**
-	 * 计算发射概率矩阵
+	 * 采用加1平滑方式计算发射概率矩阵:p=(C+1)/(M+N),
 	 * @param counter	转移发射计数器
 	 */	
-	private void calcEmissionMatrix(TransitionAndEmissionCounter counter) {
+	protected void calcEmissionMatrix(TransitionAndEmissionCounter counter) {
 		Iterator<State> iterator = counter.emissionIterator();
-				
+		long N = counter.getDictionary().observationCount();//观测状态的类型数
 		while(iterator.hasNext()) {//遍历所有发射状态
 			State state = iterator.next();
 			Iterator<Observation> observationsIterator = counter.iterator(state);
-			
+			long M = counter.getStateCount(state);//以state为发射起点的总数量
 			EmissionProbEntry emissionProbEntry = new EmissionProbEntry();
 			ARPAEntry entry = null;
-			Observation observation = null;
 			double prob = 0;
 			while(observationsIterator.hasNext()) {//计算当前状态的所有发射概率
-				observation = observationsIterator.next();
-				prob = calcMLProbability(state, observation, counter);
+				Observation observation = observationsIterator.next();
+				long C = counter.getEmissionCount(state, observation);//当前发射的数量
+				prob = 1.0 * (C + 1) / (M + N);
 				entry = new ARPAEntry(Math.log10(prob), 0);
 				emissionProbEntry.put(observation, entry);
 			}
+
+			prob = 1.0 / (M + N);
+			entry = new ARPAEntry(Math.log(prob), 0);
+			emissionProbEntry.put(UNKNOWN, entry);
+			
 			emissionMatrix.put(state, emissionProbEntry);
 		}//end while
 	}
@@ -148,7 +137,7 @@ public abstract class AbstractSupervisedLearner extends AbstractLearner {
 					sum_N += Math.pow(10, transitionMatrix.get(stateSequence).getTransitionLogProb(state));
 				
 				if(stateSequence.length() == 1)
-					sum_N_1 += Math.pow(10, pi.get(stateSequence.get(0)));
+					sum_N_1 += Math.pow(10, pi.get(stateSequence.get(0)).getLog_prob());
 				else {
 					StateSequence states = stateSequence.remove(0);
 					if(transitionMatrix.containsKey(states))

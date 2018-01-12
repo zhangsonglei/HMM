@@ -11,18 +11,6 @@ package hust.tools.hmm.utils;
 public interface Observation {
 	
 	/**
-	 * 赋予观测状态索引值
-	 * @param index	索引值
-	 */
-	public Observation setIndex(int index);
-	
-	/**
-	 * 返回观测状态的索引值
-	 * @return	索引值
-	 */
-	public int getIndex();
-
-	/**
 	 * 返回观测状态的哈希码，该哈希码只计算状态不包含索引
 	 * @return	哈希码
 	 */

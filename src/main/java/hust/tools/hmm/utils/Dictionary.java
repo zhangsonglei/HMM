@@ -2,6 +2,7 @@ package hust.tools.hmm.utils;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  *<ul>
@@ -13,13 +14,13 @@ import java.util.Iterator;
  */
 public class Dictionary {
 	
-	private static int observation_index;
-	private HashMap<Observation, Integer> observationToIndex;
-	private HashMap<Integer, Observation> indexToObservation;
+	private static int observation_index;						//动态递增，为观测状态赋索引值
+	private HashMap<Observation, Integer> observationToIndex;	//观测状态及其索引的映射
+	private HashMap<Integer, Observation> indexToObservation;	//索引指向的观测状态
 	
-	private static int state_index;
-	private HashMap<State, Integer> stateToIndex;
-	private HashMap<Integer, State> indexToState;
+	private static int state_index;								//动态递增，为隐藏状态赋索引值
+	private HashMap<State, Integer> stateToIndex;				//隐藏状态及其索引的映射
+	private HashMap<Integer, State> indexToState;				//索引指向的隐藏状态
 	
 	public Dictionary() {
 		observationToIndex = new HashMap<>();
@@ -30,48 +31,58 @@ public class Dictionary {
 		observation_index = 0;
 	}
 	
-	public State add(State state) {
+	/**
+	 * 增加一个隐藏状态，返回加上索引的隐藏状态
+	 * @param state	增加的隐藏状态
+	 * @return		加上索引的隐藏状态
+	 */
+	public void add(State state) {
 		if(!contain(state)) {
-			state.setIndex(state_index);
 			stateToIndex.put(state, state_index);
 			indexToState.put(state_index, state);
 			
 			state_index++;
-			return state;
-		}else
-			return state.setIndex(stateToIndex.get(state));
-	}
-	
-	public StateSequence add(StateSequence sequence) {
-		for(int i = 0; i < sequence.length(); i++) {
-			State ns = add(sequence.get(i));
-			sequence = sequence.set(ns, i);
 		}
-		
-		return sequence;
 	}
 	
-	public Observation add(Observation observation) {
+	/**
+	 * 增加一系列隐藏状态，返回加上索引的隐藏状态序列
+	 * @param state	增加的一系列隐藏状态
+	 * @return		加上索引的隐藏状态序列
+	 */
+	public void add(StateSequence sequence) {
+		for(int i = 0; i < sequence.length(); i++) 
+			add(sequence.get(i));
+	}
+	
+	/**
+	 * 增加一个观测状态，返回加上索引的观测状态
+	 * @param state	增加的观测状态
+	 * @return		加上索引的观测状态序列
+	 */
+	public void add(Observation observation) {
 		if(!contain(observation)) {
-			observation.setIndex(observation_index);
 			observationToIndex.put(observation, observation_index);
 			indexToObservation.put(observation_index, observation);
 			observation_index++;
-			
-			return observation;
-		}else 
-			return observation.setIndex(observationToIndex.get(observation));
-	}
-	
-	public ObservationSequence add(ObservationSequence observations) {	
-		for(int i = 0; i < observations.length(); i++) {
-			Observation no = add(observations.get(i));
-			observations = observations.set(no, i);
 		}
-		
-		return observations;
 	}
 	
+	/**
+	 * 增加一系列观测状态，返回加上索引的观测状态序列
+	 * @param state	增加的一系列观测状态
+	 * @return		加上索引的观测状态序列
+	 */
+	public void add(ObservationSequence observations) {	
+		for(int i = 0; i < observations.length(); i++)
+			add(observations.get(i));
+	}
+	
+	/**
+	 * 返回给定索引对应隐藏状态
+	 * @param index	给定索引
+	 * @return		给定索引对应隐藏状态
+	 */
 	public State getState(int index) {
 		if(indexToState.containsKey(index))
 			return indexToState.get(index);
@@ -79,6 +90,23 @@ public class Dictionary {
 		return null;
 	}
 	
+	/**
+	 * 返回给定隐藏状态的索引
+	 * @param state	待求索引的隐藏状态
+	 * @return		索引
+	 */
+	public int getIndex(State state) {
+		if(stateToIndex.containsKey(state))
+			return stateToIndex.get(state);
+		
+		return -1;
+	}
+	
+	/**
+	 * 返回给定索引对应观测状态
+	 * @param index	给定索引
+	 * @return		给定索引对应观测状态
+	 */
 	public Observation getObservation(int index) {
 		if(indexToObservation.containsKey(index))
 			return indexToObservation.get(index);
@@ -86,27 +114,81 @@ public class Dictionary {
 		return null;
 	}
 	
+	/**
+	 * 返回给定观测状态的索引
+	 * @param state	待求索引的观测状态
+	 * @return		索引
+	 */
+	public int getIndex(Observation observation) {
+		if(observationToIndex.containsKey(observation))
+			return observationToIndex.get(observation);
+		
+		return -1;
+	}
+	
+	/**
+	 * 返回隐藏状态的迭代器
+	 * @return	迭代器
+	 */
 	public Iterator<State> statesIterator() {
 		return stateToIndex.keySet().iterator();
 	}
 	
-	public Iterator<Observation> observationsIterator() {
-		return observationToIndex.keySet().iterator();
+	/**
+	 * 返回隐藏状态的集合
+	 * @return	隐藏状态的集合
+	 */
+	public Set<State> getStates() {
+		return stateToIndex.keySet();
 	}
 	
-	public boolean contain(State state) {
-		return stateToIndex.containsKey(state);
-	}
-	
-	public boolean contain(Observation observation) {
-		return observationToIndex.containsKey(observation);
-	}
-	
+	/**
+	 * 返回隐藏状态的类型数
+	 * @return	隐藏状态的类型数
+	 */
 	public int stateCount() {
 		return stateToIndex.size();
 	}
 	
+	/**
+	 * 判断是否包含给定隐藏状态
+	 * @param state	待判断的隐藏状态
+	 * @return		true-包含/false-不包含
+	 */
+	public boolean contain(State state) {
+		return stateToIndex.containsKey(state);
+	}
+	
+	/**
+	 * 返回观测状态的迭代器
+	 * @return	迭代器
+	 */
+	public Iterator<Observation> observationsIterator() {
+		return observationToIndex.keySet().iterator();
+	}
+	
+	/**
+	 * 返回观测状态的集合
+	 * @return	观测状态的集合
+	 */
+	public Set<Observation> getObservations() {
+		return observationToIndex.keySet();
+	}
+
+	/**
+	 * 返回观测状态的类型数
+	 * @return	观测状态的类型数
+	 */
 	public int observationCount() {
 		return observationToIndex.size();
 	}
+	
+	/**
+	 * 判断是否包含给定观测状态
+	 * @param state	待判断的观测状态
+	 * @return		true-包含/false-不包含
+	 */
+	public boolean contain(Observation observation) {
+		return observationToIndex.containsKey(observation);
+	}	
 }

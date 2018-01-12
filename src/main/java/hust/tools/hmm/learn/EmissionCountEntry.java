@@ -20,7 +20,7 @@ public class EmissionCountEntry {
 	/**
 	 * 发射的起始状态数量
 	 */
-	private long count;
+	private long total;
 	
 	/**
 	 * 发射到某个观测状态的数量
@@ -28,31 +28,21 @@ public class EmissionCountEntry {
 	private HashMap<Observation, Long> emissionCount;
 	
 	public EmissionCountEntry() {
+		total = 0;
 		emissionCount = new HashMap<>();
 	}
 	
-	public EmissionCountEntry(long count, HashMap<Observation, Long> emissionCount) {
-		this.count = count;
+	public EmissionCountEntry(HashMap<Observation, Long> emissionCount) {
+		total = 0;
 		this.emissionCount = emissionCount;
 	}
 	
 	/**
-	 * 设置发射的起始状态数量
-	 * @param count	数量大小
-	 * @return		更新数量后的实体
+	 * 返回发射的起始状态总数量
+	 * @return	起始状态总数量
 	 */
-	public EmissionCountEntry setCount(long count) {
-		this.count = count;
-		
-		return this;
-	}
-	
-	/**
-	 * 返回发射的起始状态数量
-	 * @return	数量大小
-	 */
-	public long getCount() {
-		return count;
+	public long getTotal() {
+		return total;
 	}
 	
 	/**
@@ -64,6 +54,8 @@ public class EmissionCountEntry {
 			emissionCount.put(observation, emissionCount.get(observation) + 1);
 		else
 			emissionCount.put(observation, 1L);
+		
+		total++;
 	}
 	
 	/**
@@ -79,7 +71,7 @@ public class EmissionCountEntry {
 	}
 	
 	/**
-	 * 返回是否包含目标观测状态observation
+	 * 返回该发射是否包含目标观测状态observation
 	 * @param observation	目标观测状态
 	 * @return				true-包含/false-不包含
 	 */
@@ -88,17 +80,25 @@ public class EmissionCountEntry {
 	}
 	
 	/**
-	 * 返回发射观测计数的迭代器
-	 * @return	迭代器
+	 * 返回该发射的所有目标观测状态迭代器
+	 * @return	该发射的所有目标观测状态迭代器
 	 */
 	public Iterator<Entry<Observation, Long>> entryIterator() {
 		return emissionCount.entrySet().iterator();
 	}
 	
-	public Iterator<Observation> keyIterator() {
+	/**
+	 * 返回该发射的所有目标观测状态迭代器
+	 * @return	该发射的所有目标观测状态迭代器
+	 */
+	public Iterator<Observation> observationsIterator() {
 		return emissionCount.keySet().iterator();
 	}
 	
+	/**
+	 * 返回该发射的所有目标观测状态集合
+	 * @return	该发射的所有目标观测状态集合
+	 */
 	public Set<Observation> getObservations() {
 		return emissionCount.keySet();
 	}
@@ -108,13 +108,15 @@ public class EmissionCountEntry {
 	 * @param state	待删除的目标观测状态
 	 */
 	public void remove(Observation observation) {
-		if(contain(observation))
+		if(contain(observation)) {
+			total -= getEmissionCount(observation);
 			emissionCount.remove(observation);
+		}
 	}
 	
 	/**
-	 * 返回发射的种类数量
-	 * @return	发射的种类数量
+	 * 返回该发射的目标观测状态种类数量
+	 * @return	该发射的目标观测状态种类数量
 	 */
 	public int size() {
 		return emissionCount.size();

@@ -3,10 +3,10 @@ package hust.tools.hmm.learn;
 import java.io.File;
 import java.util.HashMap;
 
+import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMMModel;
 import hust.tools.hmm.model.TransitionProbEntry;
-import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.State;
 import hust.tools.hmm.utils.StateSequence;
 
@@ -25,27 +25,23 @@ public class AbstractLearner {
 	 */
 	protected final int DEFAULT_ORDER = 1;
 	
-	/**
-	 * 默认隐藏状态或观测状态计数阈值
-	 */
-	protected final int DEFAULT_CUTOFF = 0;
-	
-	protected Dictionary dict;
-	
-	protected HashMap<State, Double> pi;
+	protected int order;
+		
+	protected HashMap<State, ARPAEntry> pi;
 	
 	protected HashMap<StateSequence, TransitionProbEntry> transitionMatrix;
 	
 	protected HashMap<State, EmissionProbEntry> emissionMatrix;
 	
 	public AbstractLearner() {
+		this.order = DEFAULT_ORDER;
 		pi = new HashMap<>();
 		transitionMatrix = new HashMap<>();
 		emissionMatrix = new HashMap<>();
 	}
 	
-	public AbstractLearner(Dictionary dict) {
-		this.dict = dict;
+	public AbstractLearner(int order) {
+		this.order = order;
 		pi = new HashMap<>();
 		transitionMatrix = new HashMap<>();
 		emissionMatrix = new HashMap<>();
