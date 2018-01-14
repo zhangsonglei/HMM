@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import hust.tools.hmm.model.ARPAEntry;
-import hust.tools.hmm.model.HMMModel;
+import hust.tools.hmm.model.HMModel;
 import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
@@ -57,12 +57,12 @@ public class AdditionSupervisedLearner extends AbstractSupervisedLearner {
 		this.delta = delta <= 0 ? DEFAULT_DELTA : delta;
 	}
 	
-	public HMMModel train(File modelFile) {
+	public HMModel train(File modelFile) {
 		calcPi(counter);
 		calcTransitionMatrix(counter);
 		calcEmissionMatrix(counter);
 		
-		HMMModel model = new HMMModel(counter.getDictionary(), pi, transitionMatrix, emissionMatrix);
+		HMModel model = new HMModel(order, counter.getDictionary(), pi, transitionMatrix, emissionMatrix);
 		
 		if(modelFile != null)
 			writeModel(model, modelFile);
@@ -71,7 +71,7 @@ public class AdditionSupervisedLearner extends AbstractSupervisedLearner {
 	}
 	
 	@Override
-	public HMMModel train() {
+	public HMModel train() {
 		return train(null);
 	}
 	
@@ -104,8 +104,8 @@ public class AdditionSupervisedLearner extends AbstractSupervisedLearner {
 			StateSequence start = iterator.next();
 			if(start.length() < order) {//最高阶无回退权重
 				Iterator<State> statesIterator = counter.iterator(start);
+				TransitionProbEntry transitionProbEntry = transitionMatrix.get(start);
 				
-				TransitionProbEntry transitionProbEntry = new TransitionProbEntry();
 				while(statesIterator.hasNext()) {//计算当前状态的所有转移的回退权重
 					State target = statesIterator.next();
 					ARPAEntry entry = transitionProbEntry.get(target);
@@ -116,7 +116,7 @@ public class AdditionSupervisedLearner extends AbstractSupervisedLearner {
 				}
 				
 				transitionMatrix.put(start, transitionProbEntry);
-			}
-		}
+			}//end if
+		}//end while
 	}
 }

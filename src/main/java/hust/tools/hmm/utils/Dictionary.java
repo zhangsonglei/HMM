@@ -37,12 +37,32 @@ public class Dictionary {
 	 * @return		加上索引的隐藏状态
 	 */
 	public void add(State state) {
-		if(!contain(state)) {
+		if(!containState(state)) {
 			stateToIndex.put(state, state_index);
 			indexToState.put(state_index, state);
 			
 			state_index++;
 		}
+	}
+	
+	/**
+	 * 增加一个隐藏状态索引
+	 * @param state	隐藏状态
+	 * @param index	对应索引
+	 */
+	public void put(State state, int index) {
+		stateToIndex.put(state, index);
+		indexToState.put(index, state);
+	}
+
+	/**
+	 * 增加一个观测状态索引
+	 * @param observation	观测状态
+	 * @param index			对应索引
+	 */
+	public void put(Observation observation, int index) {
+		observationToIndex.put(observation, index);
+		indexToObservation.put(index, observation);
 	}
 	
 	/**
@@ -61,7 +81,7 @@ public class Dictionary {
 	 * @return		加上索引的观测状态序列
 	 */
 	public void add(Observation observation) {
-		if(!contain(observation)) {
+		if(!containObservation(observation)) {
 			observationToIndex.put(observation, observation_index);
 			indexToObservation.put(observation_index, observation);
 			observation_index++;
@@ -155,8 +175,12 @@ public class Dictionary {
 	 * @param state	待判断的隐藏状态
 	 * @return		true-包含/false-不包含
 	 */
-	public boolean contain(State state) {
+	public boolean containState(State state) {
 		return stateToIndex.containsKey(state);
+	}
+	
+	public boolean containState(int index) {
+		return indexToState.containsKey(index);
 	}
 	
 	/**
@@ -188,7 +212,11 @@ public class Dictionary {
 	 * @param state	待判断的观测状态
 	 * @return		true-包含/false-不包含
 	 */
-	public boolean contain(Observation observation) {
+	public boolean containObservation(Observation observation) {
 		return observationToIndex.containsKey(observation);
-	}	
+	}
+	
+	public boolean containObservation(int index) {
+		return indexToObservation.containsKey(index);
+	}
 }

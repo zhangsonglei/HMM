@@ -151,10 +151,10 @@ public class ObservationSequence implements Sequence<Observation> {
 
 	@Override
 	public String toString() {
-		String string = "[";
+		String string = "";
 		for(Observation observation : observations)
 			string += observation + "  ";
 		
-		return string.trim() + "]";
+		return string.trim();
 	}
 }

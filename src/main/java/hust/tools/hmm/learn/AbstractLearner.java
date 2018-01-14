@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
-import hust.tools.hmm.model.HMMModel;
+import hust.tools.hmm.model.HMModel;
 import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.utils.State;
 import hust.tools.hmm.utils.StateSequence;
@@ -34,7 +34,7 @@ public class AbstractLearner {
 	protected HashMap<State, EmissionProbEntry> emissionMatrix;
 	
 	public AbstractLearner() {
-		this.order = DEFAULT_ORDER;
+		order = DEFAULT_ORDER;
 		pi = new HashMap<>();
 		transitionMatrix = new HashMap<>();
 		emissionMatrix = new HashMap<>();
@@ -52,7 +52,7 @@ public class AbstractLearner {
 	 * @param modelFile	模型文件
 	 * @return			HMM模型
 	 */
-	public HMMModel loadModel(File modelFile) {
+	public HMModel loadModel(File modelFile) {
 		
 		return null;
 	}
@@ -62,7 +62,7 @@ public class AbstractLearner {
 	 * @param model		HMM模型
 	 * @param modelFile	写出路径
 	 */
-	public void writeModel(HMMModel model, File modelFile) {
+	public void writeModel(HMModel model, File modelFile) {
 		
 	}
 }

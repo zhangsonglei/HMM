@@ -65,4 +65,9 @@ public class ARPAEntry implements Serializable{
 			return false;
 		return true;
 	}
+	
+	@Override
+	public String toString() {
+		return log_prob + " " + log_bo;
+	}
 }

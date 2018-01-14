@@ -29,7 +29,7 @@ import hust.tools.hmm.utils.StateSequence;
 public class HMMModelTest {
 
 	private int order;
-	private HMMModel model;
+	private HMModel model;
 	
 	//观测状态序列
 	private ObservationSequence observations;
@@ -107,35 +107,60 @@ public class HMMModelTest {
 		State[] states = new StringState[]{new StringState("3")};
 		StateSequence start = new StateSequence(states);
 		State target = new StringState("4");
-		assertEquals(Math.log10(3.0/11), model.transitionProb(start, target), 0.001);
+		assertTrue(Math.log10(3.0/11) == model.transitionProb(start, target));
+		
+		states = new StringState[]{new StringState("5"), new StringState("2"), new StringState("1")};
+		start = new StateSequence(states);
+		assertTrue(Math.log10(2.0/6) == model.transitionProb(start, target));
 	}
 
-//	//测试返回给定转移索引对应转移的概率
-//	@Test
-//	public void testTransitionProbIntArrayInt() {
-//		int[] start = new int[]{};
-//		int target = 0;
-//		
-//		assertEquals(0, model.transitionProb(start, target), 0.001);
-//	}
-//
-//	//测试返回给定发射的概率
-//	@Test
-//	public void testEmissionProbStateObservation() {
-//		State state = new StringState("");
-//		Observation observation = new StringObservation("");
-//		
-//		assertEquals(0, model.emissionProb(state, observation), 0.001);
-//	}
-//
-//	//测试返回给定发射索引对应发射的概率
-//	@Test
-//	public void testEmissionProbIntInt() {
-//		int state = 0;
-//		int observation = 0;
-//		
-//		assertEquals(0, model.emissionProb(state, observation), 0.001);
-//	}
+	//测试返回给定转移索引对应转移的概率
+	@Test
+	public void testTransitionProbIntArrayInt() {
+		int[] start = new int[]{2};
+		int target = 3;
+		assertTrue(Math.log10(3.0/11) == model.transitionProb(start, target));
+		
+		start = new int[]{4, 1, 0};
+		assertTrue(Math.log10(2.0/6) == model.transitionProb(start, target));
+	}
+
+	//测试返回给定发射的概率
+	@Test
+	public void testEmissionProbStateObservation() {
+		State state = new StringState("2");
+		Observation observation = new StringObservation("a");
+		assertTrue(Math.log10(2.0/9) == model.emissionProb(state, observation));
+		
+		observation = new StringObservation("b");
+		assertTrue(Math.log10(3.0/9) ==  model.emissionProb(state, observation));
+		
+		observation = new StringObservation("c");
+		assertTrue(Math.log10(3.0/9) ==  model.emissionProb(state, observation));
+		
+		observation = new StringObservation("d");
+		assertTrue(Math.log10(1.0/9) ==  model.emissionProb(state, observation));
+		
+		observation = new StringObservation("z");
+		assertTrue(Math.log10(1.0/9) ==  model.emissionProb(state, observation));
+	}
+
+	//测试返回给定发射索引对应发射的概率
+	@Test
+	public void testEmissionProbIntInt() {
+		int state = 1;
+		int observation = 0;
+		assertTrue(Math.log10(2.0/9) ==  model.emissionProb(state, observation));
+		
+		observation = 1;
+		assertTrue(Math.log10(3.0/9) ==  model.emissionProb(state, observation));
+		
+		observation = 2;
+		assertTrue(Math.log10(3.0/9) ==  model.emissionProb(state, observation));
+		
+		observation = 3;
+		assertTrue(Math.log10(1.0/9) ==  model.emissionProb(state, observation));
+	}
 
 	//测试返回所有观测状态
 	@Test

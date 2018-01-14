@@ -151,10 +151,10 @@ public class StateSequence implements Sequence<State> {
 
 	@Override
 	public String toString() {
-		String string = "[";
+		String string = "";
 		for(State state : states)
 			string += state + "  ";
 		
-		return string.trim() + "]";
+		return string.trim();
 	}
 }

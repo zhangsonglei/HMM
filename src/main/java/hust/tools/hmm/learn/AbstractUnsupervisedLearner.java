@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import hust.tools.hmm.model.HMMModel;
+import hust.tools.hmm.model.HMModel;
 import hust.tools.hmm.stream.UnsupervisedHMMSample;
 import hust.tools.hmm.stream.UnsupervisedHMMSampleStream;
 
@@ -31,7 +31,7 @@ public abstract class AbstractUnsupervisedLearner extends AbstractLearner {
 	 * @param modelFile			模型写出路径
 	 * @return					HMM模型
 	 */
-	public abstract HMMModel train(UnsupervisedHMMSampleStream<?> sampleStream, int order, int cutoff, File modelFile) throws IOException;
+	public abstract HMModel train(UnsupervisedHMMSampleStream<?> sampleStream, int order, int cutoff, File modelFile) throws IOException;
 
 	/**
 	 * 根据无监督样本列表训练HMM模型
@@ -41,5 +41,5 @@ public abstract class AbstractUnsupervisedLearner extends AbstractLearner {
 	 * @param modelFile	模型写出路径
 	 * @return			HMM模型
 	 */
-	public abstract HMMModel train(List<UnsupervisedHMMSample> samples, int order, int cutoff, File modelFile);
+	public abstract HMModel train(List<UnsupervisedHMMSample> samples, int order, int cutoff, File modelFile);
 }
