@@ -88,10 +88,9 @@ public class TextDataReader implements DataReader {
 		
 		State state = new StringState(items[0]);
 		Observation observation = new StringObservation(items[1]);
-		String[] arpa = items[2].split(" ");
-		ARPAEntry entry = new ARPAEntry(Double.parseDouble(arpa[0]), Double.parseDouble(arpa[1]));
+		double logProb = Double.parseDouble(items[2]);
 		
-		return new EmissionEntry(state, observation, entry);
+		return new EmissionEntry(state, observation, logProb);
 	}
 
 	@Override

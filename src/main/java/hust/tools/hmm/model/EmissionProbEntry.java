@@ -19,13 +19,13 @@ public class EmissionProbEntry {
 	/**
 	 * 发射到某个观测状态的概率及回退权重的对数
 	 */
-	private HashMap<Observation, ARPAEntry> emissionProb;
+	private HashMap<Observation, Double> emissionProb;
 	
 	public EmissionProbEntry() {
 		emissionProb = new HashMap<>();
 	}
 	
-	public EmissionProbEntry(HashMap<Observation, ARPAEntry> emissionProb) {
+	public EmissionProbEntry(HashMap<Observation, Double> emissionProb) {
 		this.emissionProb = emissionProb;
 	}
 	
@@ -33,20 +33,8 @@ public class EmissionProbEntry {
 	 * 增加或修改给定发射目标观测状态的概率及回退权重
 	 * @param observation	发射到的目标观测状态
 	 */
-	public void put(Observation observation, ARPAEntry entry) {
-		emissionProb.put(observation, entry);
-	}
-	
-	/**
-	 * 返回给定发射目标观测状态的概率及回退权重
-	 * @param observation	发射到的目标观测状态
-	 * @return				概率及回退权重
-	 */
-	public ARPAEntry get(Observation observation) {
-		if(contain(observation)) 
-			return emissionProb.get(observation);
-		
-		return null;
+	public void put(Observation observation, double logProb) {
+		emissionProb.put(observation, logProb);
 	}
 	
 	/**
@@ -56,19 +44,7 @@ public class EmissionProbEntry {
 	 */
 	public double getEmissionLogProb(Observation observation) {
 		if(contain(observation))
-			return emissionProb.get(observation).getLog_prob();
-		else
-			return 0;
-	}
-	
-	/**
-	 * 返回给定发射到目标观测状态的回退权重的对数
-	 * @param observation	转移到的目标状态
-	 * @return				回退权重的对数
-	 */
-	public double getEmissionLogBow(Observation observation) {
-		if(contain(observation))
-			return emissionProb.get(observation).getLog_bo();
+			return emissionProb.get(observation);
 		else
 			return 0;
 	}
@@ -86,7 +62,7 @@ public class EmissionProbEntry {
 	 * 返回发射的观测状态概率及权重的迭代器
 	 * @return	迭代器
 	 */
-	public Iterator<Entry<Observation, ARPAEntry>> entryIterator() {
+	public Iterator<Entry<Observation, Double>> entryIterator() {
 		return emissionProb.entrySet().iterator();
 	}
 	
@@ -113,5 +89,30 @@ public class EmissionProbEntry {
 	 */
 	public int size() {
 		return emissionProb.size();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((emissionProb == null) ? 0 : emissionProb.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		EmissionProbEntry other = (EmissionProbEntry) obj;
+		if (emissionProb == null) {
+			if (other.emissionProb != null)
+				return false;
+		} else if (!emissionProb.equals(other.emissionProb))
+			return false;
+		return true;
 	}
 }

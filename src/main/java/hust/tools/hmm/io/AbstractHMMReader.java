@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
-import hust.tools.hmm.model.HMModel;
+import hust.tools.hmm.model.HMModelBasedBOW;
 import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
@@ -46,7 +46,9 @@ public abstract class AbstractHMMReader {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public HMModel readModel() throws IOException, ClassNotFoundException {
+	public HMModelBasedBOW readModel() throws IOException, ClassNotFoundException {
+		counts = new long[6];
+		
 		//读取模型各参数的数量
 		for(int i = 0; i < 6; i++)
 			counts[i] = readCount();
@@ -66,7 +68,9 @@ public abstract class AbstractHMMReader {
 		//构造发射移概率矩阵
 		constructEmissionMatrix(counts[5]);
 		
-		return new HMModel(order, dict, pi, transitionMatrix, emissionMatrix);
+		close();
+		
+		return new HMModelBasedBOW(order, dict, pi, transitionMatrix, emissionMatrix);
 	}
 	
 	/**
@@ -79,12 +83,6 @@ public abstract class AbstractHMMReader {
 	 */
 	private void constructDict(long statesCount, long observationsCount) throws IOException, ClassNotFoundException {
 		dict = new Dictionary();
-		
-		//读取隐藏状态及其索引
-		for(int i = 0; i < statesCount; i++) {
-			DictionaryEntry entry = readDict();
-			dict.put((State) entry.getObject(), entry.getIndex());
-		}
 		
 		//读取隐藏状态及其索引
 		for(int i = 0; i < statesCount; i++) {
@@ -152,17 +150,19 @@ public abstract class AbstractHMMReader {
 		
 		for(int i = 0; i < count; i++) {
 			EmissionEntry entry = readEmissionMatrix();
+			
 			State state = entry.getState();
 			Observation observation = entry.getObservation();
-			ARPAEntry arpaEntry = entry.getEntry();
-			EmissionProbEntry probEntry = null;
+			double logProb = entry.getLogProb();
+
+			System.out.println(state + "\t" + observation + "\t" + logProb);
 			if(emissionMatrix.containsKey(state)) {
-				probEntry = emissionMatrix.get(state);
-				probEntry.put(observation, arpaEntry);
+				EmissionProbEntry probEntry = emissionMatrix.get(state);
+				probEntry.put(observation, logProb);
 				emissionMatrix.put(state, probEntry);
 			}else {
-				probEntry = new EmissionProbEntry();
-				probEntry.put(observation, arpaEntry);
+				EmissionProbEntry probEntry = new EmissionProbEntry();
+				probEntry.put(observation, logProb);
 				emissionMatrix.put(state, probEntry);
 			}
 		}

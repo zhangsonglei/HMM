@@ -1,5 +1,7 @@
 package hust.tools.hmm.utils;
 
+import java.io.Serializable;
+
 /**
  *<ul>
  *<li>Description: 观测接口
@@ -8,7 +10,7 @@ package hust.tools.hmm.utils;
  *<li>Date: 2018年1月3日
  *</ul>
  */
-public interface Observation {
+public interface Observation extends Serializable {
 	
 	/**
 	 * 返回观测状态的哈希码，该哈希码只计算状态不包含索引

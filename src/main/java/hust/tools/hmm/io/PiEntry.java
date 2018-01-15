@@ -1,5 +1,7 @@
 package hust.tools.hmm.io;
 
+import java.io.Serializable;
+
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.utils.State;
 
@@ -11,8 +13,13 @@ import hust.tools.hmm.utils.State;
  *<li>Date: 2018年1月14日
  *</ul>
  */
-public class PiEntry {
+public class PiEntry implements Serializable {
 	
+	/**
+	 * 版本序列号
+	 */
+	private static final long serialVersionUID = 2024944700684632862L;
+
 	/**
 	 * 转移到的目标状态
 	 */

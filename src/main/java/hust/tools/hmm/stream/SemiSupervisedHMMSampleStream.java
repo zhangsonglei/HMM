@@ -14,9 +14,9 @@ import opennlp.tools.util.ObjectStream;
  *</ul>
  * @param <S>源流/输入流的类型
  */
-public abstract class UnsupervisedHMMSampleStream<S> extends FilterObjectStream<S,  AbstractHMMSample> {
+public abstract class SemiSupervisedHMMSampleStream<S> extends FilterObjectStream<S,  AbstractHMMSample> {
 	
-	public UnsupervisedHMMSampleStream(ObjectStream<S> stream) {
+	public SemiSupervisedHMMSampleStream(ObjectStream<S> stream) {
 		super(stream);
 	}
 

@@ -13,6 +13,11 @@ import java.util.List;
  */
 public class ObservationSequence implements Sequence<Observation> {
 	
+	/**
+	 * 版本序列号
+	 */
+	private static final long serialVersionUID = 5963135900026406470L;
+	
 	private Observation[] observations;
 	
 	public ObservationSequence() {

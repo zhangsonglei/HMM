@@ -219,4 +219,47 @@ public class Dictionary {
 	public boolean containObservation(int index) {
 		return indexToObservation.containsKey(index);
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((indexToObservation == null) ? 0 : indexToObservation.hashCode());
+		result = prime * result + ((indexToState == null) ? 0 : indexToState.hashCode());
+		result = prime * result + ((observationToIndex == null) ? 0 : observationToIndex.hashCode());
+		result = prime * result + ((stateToIndex == null) ? 0 : stateToIndex.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Dictionary other = (Dictionary) obj;
+		if (indexToObservation == null) {
+			if (other.indexToObservation != null)
+				return false;
+		} else if (!indexToObservation.equals(other.indexToObservation))
+			return false;
+		if (indexToState == null) {
+			if (other.indexToState != null)
+				return false;
+		} else if (!indexToState.equals(other.indexToState))
+			return false;
+		if (observationToIndex == null) {
+			if (other.observationToIndex != null)
+				return false;
+		} else if (!observationToIndex.equals(other.observationToIndex))
+			return false;
+		if (stateToIndex == null) {
+			if (other.stateToIndex != null)
+				return false;
+		} else if (!stateToIndex.equals(other.stateToIndex))
+			return false;
+		return true;
+	}
 }

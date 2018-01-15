@@ -12,6 +12,11 @@ import java.util.List;
  *</ul>
  */
 public class StateSequence implements Sequence<State> {
+
+	/**
+	 * 版本序列号
+	 */
+	private static final long serialVersionUID = -1786541057795927676L;
 	
 	private State[] states;
 	

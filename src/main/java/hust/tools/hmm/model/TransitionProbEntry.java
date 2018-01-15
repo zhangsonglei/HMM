@@ -114,4 +114,29 @@ public class TransitionProbEntry {
 	public int size() {
 		return transitionProb.size();
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((transitionProb == null) ? 0 : transitionProb.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TransitionProbEntry other = (TransitionProbEntry) obj;
+		if (transitionProb == null) {
+			if (other.transitionProb != null)
+				return false;
+		} else if (!transitionProb.equals(other.transitionProb))
+			return false;
+		return true;
+	}
 }

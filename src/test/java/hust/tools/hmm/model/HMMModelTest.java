@@ -9,7 +9,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import hust.tools.hmm.learn.AdditionSupervisedLearner;
+import hust.tools.hmm.learn.AdditionSupervisedHMMTrainer;
 import hust.tools.hmm.utils.StringObservation;
 import hust.tools.hmm.utils.StringState;
 import hust.tools.hmm.stream.SupervisedHMMSample;
@@ -29,15 +29,10 @@ import hust.tools.hmm.utils.StateSequence;
 public class HMMModelTest {
 
 	private int order;
-	private HMModel model;
+	private HMModelBasedBOW model;
 	
-	//观测状态序列
-	private ObservationSequence observations;
-
 	@Before
-	public void setUp() throws Exception {
-		observations = new ObservationSequence(new StringObservation("a"));
-		
+	public void setUp() throws Exception {		
 		order = 3;
 		List<SupervisedHMMSample> samples = new ArrayList<>();
 		StateSequence stateSequence = null;
@@ -79,26 +74,8 @@ public class HMMModelTest {
 		observationSequence = new ObservationSequence(observations);
 		samples.add(new SupervisedHMMSample(stateSequence, observationSequence));
 		
-		AdditionSupervisedLearner learner = new AdditionSupervisedLearner(samples, order, 1.0);
-		model = learner.train();
-	}
-
-	//测试返回给定观测序列对应的最佳隐藏状态
-	@Test
-	public void testBestStateSeqence() {
-		assertEquals(null, model.bestStateSeqence(observations, order));
-	}
-
-	//测试返回给定观测序列对应的k个最佳隐藏状态
-	@Test
-	public void testBestKStateSeqence() {
-		assertArrayEquals(null, model.bestKStateSeqence(observations, order, 5));
-	}
-
-	//测试返回给定观测序列的最大似然估计
-	@Test
-	public void testGetProbObservationSequenceInt() {
-		assertEquals(0, model.getProb(observations, order), 0.001);
+		AdditionSupervisedHMMTrainer learner = new AdditionSupervisedHMMTrainer(samples, order, 1.0);
+		model = (HMModelBasedBOW) learner.train();
 	}
 
 	//测试返回给定转移的概率
@@ -207,21 +184,21 @@ public class HMMModelTest {
 	//返回给定隐藏状态的初始概率
 	@Test
 	public void testGetPiState() {
-		assertTrue(Math.log10(4.0/21) == model.getPi(new StringState("1")));
-		assertTrue(Math.log10(5.0/21) == model.getPi(new StringState("2")));
-		assertTrue(Math.log10(6.0/21) == model.getPi(new StringState("3")));
-		assertTrue(Math.log10(4.0/21) == model.getPi(new StringState("4")));
-		assertTrue(Math.log10(2.0/21) == model.getPi(new StringState("5")));
+		assertTrue(Math.log10(2.0/8) == model.getPi(new StringState("1")));
+		assertTrue(Math.log10(1.0/8) == model.getPi(new StringState("2")));
+		assertTrue(Math.log10(2.0/8) == model.getPi(new StringState("3")));
+		assertTrue(Math.log10(1.0/8) == model.getPi(new StringState("4")));
+		assertTrue(Math.log10(2.0/8) == model.getPi(new StringState("5")));
 	}
 
 	//返回给定隐藏状态索引对应索引的初始概率
 	@Test
 	public void testGetPiInt() {
-		assertTrue(Math.log10(4.0/21) == model.getPi(0));
-		assertTrue(Math.log10(5.0/21) == model.getPi(1));
-		assertTrue(Math.log10(6.0/21) == model.getPi(2));
-		assertTrue(Math.log10(4.0/21) == model.getPi(3));
-		assertTrue(Math.log10(2.0/21) == model.getPi(4));
+		assertTrue(Math.log10(2.0/8) == model.getPi(0));
+		assertTrue(Math.log10(1.0/8) == model.getPi(1));
+		assertTrue(Math.log10(2.0/8) == model.getPi(2));
+		assertTrue(Math.log10(1.0/8) == model.getPi(3));
+		assertTrue(Math.log10(2.0/8) == model.getPi(4));
 	}
 
 	//测试返回给定索引对应的观测状态
@@ -273,5 +250,4 @@ public class HMMModelTest {
 	public void testGetObservationCount() {
 		assertEquals(4, model.getObservationCount());
 	}
-
 }

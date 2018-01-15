@@ -26,6 +26,11 @@ import hust.tools.hmm.utils.StateSequence;
 public class TransitionAndEmissionCounter {
 		
 	/**
+	 * 统计状态和观测的集合，并赋予索引
+	 */
+	private Dictionary dict;
+	
+	/**
 	 * 序列、发射的计数
 	 */
 	private HashMap<StateSequence, TransitionCountEntry> transitionCountMap;
@@ -36,14 +41,14 @@ public class TransitionAndEmissionCounter {
 	private HashMap<State, EmissionCountEntry> emissionCountMap;
 	
 	/**
-	 * 统计状态和观测的集合，并赋予索引
+	 * 出现在样本开始位置的隐藏状态计数，用于计算初始转移概率
 	 */
-	private Dictionary dict;
-	
+	private HashMap<State, Integer> startStateCount;
+
 	/**
-	 * 隐藏状态的总数量,用于计算初始转移概率
+	 * 样本起始隐藏状态之和
 	 */
-	private long totalStatesCount;
+	private int totalStartStateCount;
 	
 	/**
 	 * 默认HMM阶数
@@ -91,7 +96,8 @@ public class TransitionAndEmissionCounter {
 	public void update(SupervisedHMMSample sample) {
 		StateSequence stateSequence = sample.getStateSequence();
 		dict.add(stateSequence);
-		totalStatesCount += stateSequence.length();
+		
+		add(stateSequence);
 		
 		ObservationSequence observationSequence = sample.getObservationSequence();
 		dict.add(observationSequence);
@@ -125,6 +131,21 @@ public class TransitionAndEmissionCounter {
 		dict = new Dictionary();
 		transitionCountMap = new HashMap<>();
 		emissionCountMap = new HashMap<>();
+		startStateCount = new HashMap<>();
+	}
+	
+	/**
+	 * 提取第一个隐藏状态并计数
+	 * @param sequence 样本隐藏状态序列
+	 */
+	private void add(StateSequence sequence) {
+		State state = sequence.get(0);
+		if(startStateCount.containsKey(state))
+			startStateCount.put(state, startStateCount.get(state) + 1);
+		else 
+			startStateCount.put(state, 1);
+		
+		totalStartStateCount++;
 	}
 	
 	/**
@@ -168,7 +189,7 @@ public class TransitionAndEmissionCounter {
 	public int getOrder() {
 		return order;
 	}
-	
+		
 	/**
 	 * 返回转移起点的的总数量
 	 * @param start	转移的起点
@@ -217,11 +238,23 @@ public class TransitionAndEmissionCounter {
 	}
 	
 	/**
-	 * 返回状态的总数量
-	 * @return	状态的总数量
+	 * 返回给定隐藏状态出现在样本起点的次数
+	 * @param state	给定隐藏状态
+	 * @return		隐藏状态出现在样本起点的次数
 	 */
-	public long getTotalStatesCount() {
-		return totalStatesCount;
+	public int getStartStateCount(State state) {
+		if(startStateCount.containsKey(state))
+			return startStateCount.get(state);
+		
+		return 0;
+	}
+	
+	/**
+	 * 返回起始状态的总数量
+	 * @return	起始状态的总数量
+	 */
+	public int getTotalStartStatesCount() {
+		return totalStartStateCount;
 	}
 	
 	/**

@@ -10,8 +10,13 @@ import hust.tools.hmm.utils.State;
  *<li>Date: 2017年12月26日
  *</ul>
  */
-public class StringState implements State {
+public class StringState implements State{
 
+	/**
+	 * 版本序列号
+	 */
+	private static final long serialVersionUID = -7272749798298835365L;
+	
 	private String state;
 		
 	public StringState(String state) {
@@ -25,7 +30,7 @@ public class StringState implements State {
 		result = prime * result + ((state == null) ? 0 : state.hashCode());
 		return result;
 	}
-
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

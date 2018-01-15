@@ -1,5 +1,6 @@
 package hust.tools.hmm.utils;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -11,7 +12,7 @@ import java.util.List;
  *</ul>
  * @param <T>序列元素的类型
  */
-public interface Sequence<T> {
+public interface Sequence<T> extends Serializable {
     
     public Sequence<T> add(T token);
     

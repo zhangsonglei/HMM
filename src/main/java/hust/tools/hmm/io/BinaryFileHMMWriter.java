@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import hust.tools.hmm.model.HMModel;
+import hust.tools.hmm.model.HMModelBasedBOW;
 
 /**
  *<ul>
@@ -19,16 +19,16 @@ public class BinaryFileHMMWriter extends AbstractHMMWriter {
 
 	private DataOutputStream dos;
 	
-	public BinaryFileHMMWriter(HMModel model, String pathname) throws IOException {
+	public BinaryFileHMMWriter(HMModelBasedBOW model, String pathname) throws IOException {
 		this(model, new File(pathname));
 	}
 	
-	public BinaryFileHMMWriter(HMModel model, File file) throws IOException {
+	public BinaryFileHMMWriter(HMModelBasedBOW model, File file) throws IOException {
 		super(model);
 		dos = new DataOutputStream(new FileOutputStream(file));
 	}
 	
-	public BinaryFileHMMWriter(HMModel model, DataOutputStream dos) throws IOException {
+	public BinaryFileHMMWriter(HMModelBasedBOW model, DataOutputStream dos) throws IOException {
 		super(model);
 		this.dos = dos;
 	}

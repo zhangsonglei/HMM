@@ -1,5 +1,7 @@
 package hust.tools.hmm.io;
 
+import java.io.Serializable;
+
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.utils.State;
 import hust.tools.hmm.utils.StateSequence;
@@ -12,8 +14,13 @@ import hust.tools.hmm.utils.StateSequence;
  *<li>Date: 2018年1月14日
  *</ul>
  */
-public class TransitionEntry {
+public class TransitionEntry implements Serializable {
 	
+	/**
+	 * 版本序列号
+	 */
+	private static final long serialVersionUID = -7083055836147200214L;
+
 	/**
 	 * 转移的条件
 	 */

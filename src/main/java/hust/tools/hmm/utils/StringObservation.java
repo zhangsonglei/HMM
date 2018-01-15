@@ -12,8 +12,12 @@ import hust.tools.hmm.utils.Observation;
  */
 public class StringObservation implements Observation {
 
-	private String observation;
+	/**
+	 * 版本序列号
+	 */
+	private static final long serialVersionUID = -4250685459905341143L;
 	
+	private String observation;
 	
 	public StringObservation(String observation) {
 		this.observation = observation;

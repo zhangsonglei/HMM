@@ -1,5 +1,7 @@
 package hust.tools.hmm.utils;
 
+import java.io.Serializable;
+
 /**
  *<ul>
  *<li>Description: 状态接口
@@ -8,7 +10,7 @@ package hust.tools.hmm.utils;
  *<li>Date: 2017年12月27日
  *</ul>
  */
-public interface State {
+public interface State extends Serializable {
 	
 	/**
 	 * 返回隐藏状态的哈希码，该哈希码只计算状态不包含索引

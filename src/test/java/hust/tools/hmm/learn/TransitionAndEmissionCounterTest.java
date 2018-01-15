@@ -104,6 +104,7 @@ public class TransitionAndEmissionCounterTest {
 		counter = new TransitionAndEmissionCounter(samples, order);
 	}
 
+	//测试计数更新方法
 	@Test
 	public void testUpdate() {
 		counter.update(sample);
@@ -131,6 +132,7 @@ public class TransitionAndEmissionCounterTest {
 		assertEquals(0, counter.getEmissionCount(state, observation));
 	}
 
+	//测试转移起点计数
 	@Test
 	public void testGetSequeceCount() {
 		State[] states = new StringState[]{new StringState("8"), new StringState("9"), new StringState("0")};
@@ -143,6 +145,7 @@ public class TransitionAndEmissionCounterTest {
 		assertEquals(2, counter.getSequenceCount(new StateSequence(new StringState("3"))));
 	}
 
+	//测试转移计数
 	@Test
 	public void testGetTransitionCount() {
 		State target = new StringState("4");
@@ -156,6 +159,7 @@ public class TransitionAndEmissionCounterTest {
 		assertEquals(0, counter.getTransitionCount(new StateSequence(states36), target));
 	}
 
+	//测试发射计数
 	@Test
 	public void testGetEmissionCount() {
 		State state = new StringState("8");
@@ -175,7 +179,14 @@ public class TransitionAndEmissionCounterTest {
 		state = new StringState("3");
 		assertEquals(2, counter.getEmissionCount(state, observation));
 	}
+	
+	@Test
+	public void testGetStartStatesCount() {
+		assertTrue(2 == counter.getStartStateCount(new StringState("1")));
+		assertTrue(3 == counter.getTotalStartStatesCount());
+	}
 
+	//测试判断是否包含给定转移起点
 	@Test
 	public void testContainStateSequence() {
 		assertTrue(counter.contain(new StateSequence(states23)));
@@ -183,6 +194,7 @@ public class TransitionAndEmissionCounterTest {
 		assertFalse(counter.contain(new StateSequence(states36)));
 	}
 
+	//测试判断是否包含给定转移
 	@Test
 	public void testContainTransition() {
 		State target = new StringState("4");
@@ -193,6 +205,7 @@ public class TransitionAndEmissionCounterTest {
 		assertFalse(counter.contain(new StateSequence(states36), target));
 	}
 	
+	//测试判断是否包含给定发射起点状态
 	@Test
 	public void testContainState() {
 		State state = new StringState("9");
@@ -205,6 +218,7 @@ public class TransitionAndEmissionCounterTest {
 		assertFalse(counter.contain(state));
 	}
 
+	//测试判断是否包含给定发射
 	@Test
 	public void testContainEmission() {
 		State state = new StringState("9");

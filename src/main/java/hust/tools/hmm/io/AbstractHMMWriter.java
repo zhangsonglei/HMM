@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
-import hust.tools.hmm.model.HMModel;
+import hust.tools.hmm.model.HMModelBasedBOW;
 import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
@@ -36,7 +36,7 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 	
 	private long[] counts;
 	
-	public AbstractHMMWriter(HMModel model) {
+	public AbstractHMMWriter(HMModelBasedBOW model) {
 		order = model.getOrder();
 		dictionary = model.getDict();
 		pi = model.getPi();
@@ -54,13 +54,14 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 		counts[3] = pi.size();						//隐藏状态数量
 		
 		long total = 0;
-		
 		for(Entry<StateSequence, TransitionProbEntry> entry : transitionMatrix.entrySet())
 			total += entry.getValue().size();
 		counts[4] = total;							//转移条目数量
 		
+		total = 0;
 		for(Entry<State, EmissionProbEntry> entry : emissionMatrix.entrySet())
 			total += entry.getValue().size();
+		
 		counts[5] = total;			//发射条目数量
 	}
 
@@ -100,12 +101,15 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 		
 		//写出发射概率矩阵
 		for(Entry<State, EmissionProbEntry> entry : emissionMatrix.entrySet()) {
-			Iterator<Entry<Observation, ARPAEntry>> iterator = entry.getValue().entryIterator();
+			Iterator<Entry<Observation, Double>> iterator = entry.getValue().entryIterator();
 					
 			while(iterator.hasNext()) {
-				Entry<Observation, ARPAEntry> probEntry = iterator.next();
+				Entry<Observation, Double> probEntry = iterator.next();
+				System.out.println(entry.getKey() + "\t" + probEntry.getKey() +"\t"+probEntry.getValue());
 				writeEmissionMatrix(new EmissionEntry(entry.getKey(), probEntry.getKey(), probEntry.getValue()));
 			}
 		}
+		
+		close();
 	}
 }
