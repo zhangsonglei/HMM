@@ -17,7 +17,14 @@ public interface HMMWriter {
 	 * @param entry	状态索引条目
 	 * @throws IOException
 	 */
-	public void writeIndex(DictionaryEntry entry) throws IOException;
+	public void writeObservationIndex(ObservationIndex entry) throws IOException;
+	
+	/**
+	 * 写出观测状态索引
+	 * @param entry	状态索引条目
+	 * @throws IOException
+	 */
+	public void writeStateIndex(StateIndex entry) throws IOException;
 	
 	/**
 	 * 写出初始转移向量

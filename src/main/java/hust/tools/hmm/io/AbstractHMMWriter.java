@@ -8,7 +8,6 @@ import java.util.Map.Entry;
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMModelBasedBOW;
-import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
@@ -28,9 +27,9 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 	
 	private Dictionary dictionary;
 	
-	private HashMap<State, ARPAEntry> pi;
+	private HashMap<State, Double> pi;
 	
-	private HashMap<StateSequence, TransitionProbEntry>  transitionMatrix;
+	private HashMap<StateSequence, ARPAEntry>  transitionMatrix;
 	
 	private HashMap<State, EmissionProbEntry>  emissionMatrix;
 	
@@ -52,13 +51,9 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 		counts[1] = dictionary.stateCount();		//隐藏状态数量
 		counts[2] = dictionary.observationCount();	//观测状态数量
 		counts[3] = pi.size();						//隐藏状态数量
+		counts[4] = transitionMatrix.size();		//转移条目数量
 		
 		long total = 0;
-		for(Entry<StateSequence, TransitionProbEntry> entry : transitionMatrix.entrySet())
-			total += entry.getValue().size();
-		counts[4] = total;							//转移条目数量
-		
-		total = 0;
 		for(Entry<State, EmissionProbEntry> entry : emissionMatrix.entrySet())
 			total += entry.getValue().size();
 		
@@ -75,37 +70,30 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 		Iterator<State> statesIterator = dictionary.statesIterator();
 		while(statesIterator.hasNext()) {
 			State  state = statesIterator.next();
-			writeIndex(new DictionaryEntry(state, dictionary.getIndex(state)));
+			writeStateIndex(new StateIndex(state, dictionary.getIndex(state)));
 		}
 		
 		//写出观测状态索引
 		Iterator<Observation> observationsIterator = dictionary.observationsIterator();
 		while(observationsIterator.hasNext()) {
 			Observation  observation = observationsIterator.next();
-			writeIndex(new DictionaryEntry(observation, dictionary.getIndex(observation)));
+			writeObservationIndex(new ObservationIndex(observation, dictionary.getIndex(observation)));
 		}
 		
 		//写出初始转移向量
-		for(Entry<State, ARPAEntry> entry : pi.entrySet())
+		for(Entry<State, Double> entry : pi.entrySet())
 			writePi(new PiEntry(entry.getKey(), entry.getValue()));
 	
 		//写出状态转移概率矩阵
-		for(Entry<StateSequence, TransitionProbEntry> entry : transitionMatrix.entrySet()) {
-			Iterator<Entry<State, ARPAEntry>> iterator = entry.getValue().entryIterator();
-			
-			while(iterator.hasNext()) {
-				Entry<State, ARPAEntry> probEntry = iterator.next();
-				writeTransitionMatrix(new TransitionEntry(entry.getKey(), probEntry.getKey(), probEntry.getValue()));
-			}
-		}
-		
+		for(Entry<StateSequence, ARPAEntry> entry : transitionMatrix.entrySet()) 
+			writeTransitionMatrix(new TransitionEntry(entry.getKey(), entry.getValue()));
+					
 		//写出发射概率矩阵
 		for(Entry<State, EmissionProbEntry> entry : emissionMatrix.entrySet()) {
 			Iterator<Entry<Observation, Double>> iterator = entry.getValue().entryIterator();
 					
 			while(iterator.hasNext()) {
 				Entry<Observation, Double> probEntry = iterator.next();
-				System.out.println(entry.getKey() + "\t" + probEntry.getKey() +"\t"+probEntry.getValue());
 				writeEmissionMatrix(new EmissionEntry(entry.getKey(), probEntry.getKey(), probEntry.getValue()));
 			}
 		}

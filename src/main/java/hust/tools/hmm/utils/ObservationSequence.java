@@ -158,7 +158,7 @@ public class ObservationSequence implements Sequence<Observation> {
 	public String toString() {
 		String string = "";
 		for(Observation observation : observations)
-			string += observation + "  ";
+			string += observation + " ";
 		
 		return string.trim();
 	}

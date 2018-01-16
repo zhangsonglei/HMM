@@ -76,8 +76,12 @@ public class StateSequence implements Sequence<State> {
 			return null;
 		
 		State[] arr = new State[length() - 1];
-		for(int i = 0; i < arr.length; i++)
-			arr[i] = states[i];
+		for(int i = 0, j = 0; i < states.length; i++) {
+			if(i == index)
+				continue;
+			
+			arr[j++] = states[i];
+		}
 		
 		return new StateSequence(arr);
 	}
@@ -158,7 +162,7 @@ public class StateSequence implements Sequence<State> {
 	public String toString() {
 		String string = "";
 		for(State state : states)
-			string += state + "  ";
+			string += state + " ";
 		
 		return string.trim();
 	}

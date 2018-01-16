@@ -32,7 +32,7 @@ public class HMMModelTest {
 	private HMModelBasedBOW model;
 	
 	@Before
-	public void setUp() throws Exception {		
+	public void setUp() throws Exception {
 		order = 3;
 		List<SupervisedHMMSample> samples = new ArrayList<>();
 		StateSequence stateSequence = null;
@@ -84,7 +84,7 @@ public class HMMModelTest {
 		State[] states = new StringState[]{new StringState("3")};
 		StateSequence start = new StateSequence(states);
 		State target = new StringState("4");
-		assertTrue(Math.log10(3.0/11) == model.transitionProb(start, target));
+		assertEquals(Math.log10(3.0/11), model.transitionProb(start, target), 0.01);
 		
 		states = new StringState[]{new StringState("5"), new StringState("2"), new StringState("1")};
 		start = new StateSequence(states);

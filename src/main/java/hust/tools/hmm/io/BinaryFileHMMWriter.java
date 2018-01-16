@@ -41,7 +41,12 @@ public class BinaryFileHMMWriter extends AbstractHMMWriter {
 
 
 	@Override
-	public void writeIndex(DictionaryEntry entry) throws IOException {
+	public void writeStateIndex(StateIndex entry) throws IOException {
+		dos.writeUTF(entry.toString());
+	}
+	
+	@Override
+	public void writeObservationIndex(ObservationIndex entry) throws IOException {
 		dos.writeUTF(entry.toString());
 	}
 

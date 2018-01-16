@@ -48,11 +48,17 @@ public class TextFileHMMWriter extends AbstractHMMWriter {
 	}
 
 	@Override
-	public void writeIndex(DictionaryEntry entry) throws IOException {
+	public void writeObservationIndex(ObservationIndex entry) throws IOException {
 		bWriter.write(entry.toString());
 		bWriter.newLine();
 	}
 
+	@Override
+	public void writeStateIndex(StateIndex entry) throws IOException {
+		bWriter.write(entry.toString());
+		bWriter.newLine();
+	}
+	
 	@Override
 	public void writePi(PiEntry entry) throws IOException {
 		bWriter.write(entry.toString());

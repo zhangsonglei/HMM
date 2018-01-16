@@ -9,7 +9,6 @@ import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMModel;
 import hust.tools.hmm.model.HMModelBasedBOW;
-import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
 import hust.tools.hmm.utils.Dictionary;
@@ -38,9 +37,9 @@ public abstract class AbstractSupervisedHMMTrainer implements HMMTrainer {
 	
 	protected TransitionAndEmissionCounter counter;
 	
-	protected HashMap<State, ARPAEntry> pi;
+	protected HashMap<State, Double> pi;
 	
-	protected HashMap<StateSequence, TransitionProbEntry> transitionMatrix;
+	protected HashMap<StateSequence, ARPAEntry> transitionMatrix;
 	
 	protected HashMap<State, EmissionProbEntry> emissionMatrix;
 
@@ -106,34 +105,23 @@ public abstract class AbstractSupervisedHMMTrainer implements HMMTrainer {
 	 * @return				给定转移的回退权重
 	 */
     protected double calcBOW(StateSequence stateSequence) {
-    	//例子：求s1s2->s3的回退权重
-    	double sum_N = 0.0;		//所有出现的以s1s2为起点 (s1s2->*)的发射概率之和
-    	double sum_N_1 = 0.0;	//所有出现的以s1s2为起点(s1s2->*) 的低阶发射：(s2->*)的概率之和
-		
-    	TransitionCountEntry transitionCountEntry = counter.get(stateSequence);
-    	if(transitionCountEntry != null) {
-    		Set<State> suffixs = transitionCountEntry.getStates();
-    		if(suffixs != null) {
-    			for(State state : suffixs) {
-    				if(transitionMatrix.containsKey(stateSequence))
-    					sum_N += Math.pow(10, transitionMatrix.get(stateSequence).getTransitionLogProb(state));
-    				
-    				if(stateSequence.length() == 1)
-    					sum_N_1 += Math.pow(10, pi.get(stateSequence.get(0)).getLog_prob());
-    				else {
-    					StateSequence states = stateSequence.remove(0);
-    					if(transitionMatrix.containsKey(states))
-    						sum_N_1 += Math.pow(10, transitionMatrix.get(states).getTransitionLogProb(state));
-    				}
-    			}
-    			
-    			double bow = (1.0 - sum_N) / (1.0 - sum_N_1);
-    			if(bow <= 0)
-    				throw new IllegalArgumentException(stateSequence + "\tsum_N = " + sum_N + "\tsum_N_1 = " + sum_N_1);
-    			
-    			return bow;
-    		}
-    	}
+    	//例子：求s1s2的回退权重
+    	
+    	Set<State> suffixs = counter.getSuffixs(stateSequence);
+		if(suffixs != null) {
+			double sum_N = 0.0;		//所有出现的以s1s2为起点 (s1s2->*)的发射概率之和
+	    	double sum_N_1 = 0.0;	//所有出现的以s1s2为起点(s1s2->*) 的低阶发射：(s2->*)的概率之和
+			for(State state : suffixs) {
+				StateSequence states = stateSequence.add(state);
+				if(transitionMatrix.containsKey(states))
+					sum_N += Math.pow(10, transitionMatrix.get(states).getLog_prob());
+				states = states.remove(0);
+				if(transitionMatrix.containsKey(states))
+					sum_N_1 += Math.pow(10, transitionMatrix.get(states).getLog_prob());
+			}
+			
+			return (1.0 - sum_N) / (1.0 - sum_N_1);
+		}
     	
     	return 1.0;
     }

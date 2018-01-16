@@ -3,10 +3,9 @@ package hust.tools.hmm.learn;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-
+import java.util.Set;
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
-import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
 import hust.tools.hmm.utils.Observation;
@@ -64,7 +63,7 @@ public class AdditionSupervisedHMMTrainer extends AbstractSupervisedHMMTrainer {
 	}
 	
 	/**
-	 * 计算初始概率矩阵
+	 * 计算初始概率矩阵（已确保概率之和为1，不需要归一化）
 	 * @param counter	转移发射计数器
 	 */	
 	@Override
@@ -78,65 +77,47 @@ public class AdditionSupervisedHMMTrainer extends AbstractSupervisedHMMTrainer {
 			state = iterator.next();
 			int count = counter.getStartStateCount(state);
 			double prob = (count + 1.0) / (M + N);
-			pi.put(state, new ARPAEntry(Math.log10(prob), 0));
-		}
-		
-		//计算回退权重
-		iterator = pi.keySet().iterator();
-		while (iterator.hasNext()) {
-			state = iterator.next();
-			double logBow = Math.log10(calcBOW(new StateSequence(state)));
-			pi.put(state, pi.get(state).setLog_bo(logBow));
+			
+			pi.put(state, Math.log10(prob));
 		}
 	}
 	
 	@Override
 	protected void calcTransitionMatrix(TransitionAndEmissionCounter counter) {
 		Iterator<StateSequence> iterator = counter.transitionIterator();
-		
 		while(iterator.hasNext()) {//遍历所有转移状态,计算转移概率
-			StateSequence start = iterator.next();
-			Iterator<State> statesIterator = counter.iterator(start);
+			StateSequence sequence = iterator.next();
 			
-			TransitionProbEntry transitionProbEntry = new TransitionProbEntry();
-			ARPAEntry entry = null;
-			State target = null;
-			double prob = 0;
-			double totalCount = counter.getSequenceCount(start);
-			while(statesIterator.hasNext()) {//计算当前状态的所有转移概率
-				target = statesIterator.next();
-				prob = (counter.getTransitionCount(start, target) + delta)/ (totalCount + delta * counter.getDictionary().stateCount());
-				entry = new ARPAEntry(Math.log10(prob), 0);
-				transitionProbEntry.put(target, entry);
+			long nCount = counter.getSequenceCount(sequence);
+			long n_Count = 0;
+			if(sequence.length() == 1)
+				n_Count = counter.getTotalStatesCount();
+			else {//保证归一化
+				StateSequence n_States = sequence.remove(sequence.length() - 1);
+				Set<State> suffixs = counter.getSuffixs(n_States);
+				for(State suffix : suffixs) 
+					n_Count += counter.getSequenceCount(n_States.add(suffix));
 			}
 			
-			transitionMatrix.put(start, transitionProbEntry);
+			double prob = (nCount + delta)/ (n_Count + delta * counter.getDictionary().stateCount());
+			transitionMatrix.put(sequence, new ARPAEntry(Math.log10(prob), 0));
 		}
-		
-		iterator = counter.transitionIterator();
-		
-		while(iterator.hasNext()) {//遍历所有转移状态， 计算回退权重
-			StateSequence start = iterator.next();
-			if(start.length() < order) {//最高阶无回退权重
-				Iterator<State> statesIterator = counter.iterator(start);
-				TransitionProbEntry transitionProbEntry = transitionMatrix.get(start);
-				
-				while(statesIterator.hasNext()) {//计算当前状态的所有转移的回退权重
-					State target = statesIterator.next();
-					ARPAEntry entry = transitionProbEntry.get(target);
-					if(entry != null) {
-						double logBow = Math.log10(calcBOW(start.add(target)));
-						transitionProbEntry.put(target, entry.setLog_bo(logBow));
-					}
+
+		Set<StateSequence> keySet = transitionMatrix.keySet();
+		for(StateSequence sequence : keySet) {//遍历计算回退权重
+			if(sequence.length() != order + 1) {//最高阶无回退权重
+				ARPAEntry entry = transitionMatrix.get(sequence);
+				double bow = calcBOW(sequence);
+				if(!(Double.isNaN(bow) || Double.isInfinite(bow))) {
+					entry = entry.setLog_bo(Math.log10(bow));
+					transitionMatrix.put(sequence, entry);
 				}
-				
-				transitionMatrix.put(start, transitionProbEntry);
 			}//end if
-		}//end while
+		}
 	}
 	
 	/**
-	 * 采用加1平滑方式计算发射概率矩阵:p=(C+1)/(M+N)
+	 * 采用加1平滑方式计算发射概率矩阵:p=(C+1)/(M+N)（已确保概率之和为1，不需要归一化）
 	 * @param counter	转移发射计数器
 	 */	
 	protected void calcEmissionMatrix(TransitionAndEmissionCounter counter) {

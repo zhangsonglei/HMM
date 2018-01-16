@@ -30,10 +30,15 @@ public class ObjectDataReader implements DataReader {
 	}
 
 	@Override
-	public DictionaryEntry readDict() throws IOException, ClassNotFoundException {
-		return (DictionaryEntry) ois.readObject();
+	public ObservationIndex readObservationIndex() throws IOException, ClassNotFoundException {
+		return (ObservationIndex) ois.readObject();
 	}
 
+	@Override
+	public StateIndex readStateIndex() throws IOException, ClassNotFoundException {
+		return (StateIndex) ois.readObject();
+	}
+	
 	@Override
 	public PiEntry readPi() throws IOException, ClassNotFoundException {
 		return (PiEntry) ois.readObject();

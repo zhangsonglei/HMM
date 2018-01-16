@@ -21,12 +21,20 @@ public interface DataReader {
 	public long readCount() throws IOException;
 	
 	/**
-	 * 读入字典数据
-	 * @return	字典条目
+	 * 读入观测状态索引
+	 * @return	观测状态索引
 	 * @throws IOException
 	 * @throws ClassNotFoundException 
 	 */
-	public DictionaryEntry readDict() throws IOException, ClassNotFoundException;
+	public ObservationIndex readObservationIndex() throws IOException, ClassNotFoundException;
+	
+	/**
+	 * 读入隐藏状态索引
+	 * @return	隐藏状态索引
+	 * @throws IOException
+	 * @throws ClassNotFoundException 
+	 */
+	public StateIndex readStateIndex() throws IOException, ClassNotFoundException;
 	
 	/**
 	 * 读入初始转移向量

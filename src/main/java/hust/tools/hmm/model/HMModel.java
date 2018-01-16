@@ -31,20 +31,20 @@ public interface HMModel {
 	public double getProb(ObservationSequence observations, StateSequence states, int order);
 	
 	/**
-	 * 返回隐藏状态i到j的转移概率
-	 * @param i	起始隐藏状态
-	 * @param j	目的隐藏状态
-	 * @return	转移概率
+	 * 返回给定转移的转移概率
+	 * @param start		起始隐藏状态
+	 * @param target	目的隐藏状态
+	 * @return			转移概率
 	 */
 	public double transitionProb(StateSequence start, State target);
 	
 	/**
-	 * 返回隐藏状态i到观测状态t的发射概率
-	 * @param i	隐藏状态
-	 * @param t	观测状态
-	 * @return	发射概率
+	 * 返回给定发射的发射概率
+	 * @param state			隐藏状态
+	 * @param observation	观测状态
+	 * @return				发射概率
 	 */
-	public double emissionProb(State i, Observation t);
+	public double emissionProb(State state, Observation observation);
 		
 	/**
 	 * 返回所有观测状态

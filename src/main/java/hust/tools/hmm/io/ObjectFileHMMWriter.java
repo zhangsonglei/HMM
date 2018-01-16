@@ -43,7 +43,12 @@ public class ObjectFileHMMWriter extends AbstractHMMWriter {
 	}
 
 	@Override
-	public void writeIndex(DictionaryEntry entry) throws IOException {
+	public void writeObservationIndex(ObservationIndex entry) throws IOException {
+		dos.writeObject(entry);
+	}
+	
+	@Override
+	public void writeStateIndex(StateIndex entry) throws IOException {
 		dos.writeObject(entry);
 	}
 

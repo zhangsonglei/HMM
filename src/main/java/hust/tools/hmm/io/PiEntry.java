@@ -2,7 +2,6 @@ package hust.tools.hmm.io;
 
 import java.io.Serializable;
 
-import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.utils.State;
 
 /**
@@ -28,22 +27,22 @@ public class PiEntry implements Serializable {
 	/**
 	 * 转移的概率及回退权重
 	 */
-	private ARPAEntry entry;
+	private double logProb;
 	
-	public PiEntry(State state, ARPAEntry entry) {
+	public PiEntry(State state, double logProb) {
 		this.state = state;
-		this.entry = entry;
+		this.logProb = logProb;
 	}
 
 	public State getState() {
 		return state;
 	}
-
-	public ARPAEntry getEntry() {
-		return entry;
-	}
 	
+	public double getLogProb() {
+		return logProb;
+	}
+
 	public String toString() {
-		return state + "\t" + entry;
+		return state + "\t" + logProb;
 	}
 }

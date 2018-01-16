@@ -3,7 +3,6 @@ package hust.tools.hmm.io;
 import java.io.Serializable;
 
 import hust.tools.hmm.model.ARPAEntry;
-import hust.tools.hmm.utils.State;
 import hust.tools.hmm.utils.StateSequence;
 
 /**
@@ -24,30 +23,20 @@ public class TransitionEntry implements Serializable {
 	/**
 	 * 转移的条件
 	 */
-	private StateSequence start;
-	
-	/**
-	 * 转移的目标状态
-	 */
-	private State target;
+	private StateSequence sequence;
 	
 	/**
 	 * 转移的概率及回退权重
 	 */
 	private ARPAEntry entry;
 	
-	public TransitionEntry(StateSequence start, State target, ARPAEntry entry) {
-		this.start = start;
-		this.target = target;
+	public TransitionEntry(StateSequence sequence, ARPAEntry entry) {
+		this.sequence = sequence;
 		this.entry = entry;
 	}
 	
-	public StateSequence getStart() {
-		return start;
-	}
-	
-	public State getTarget() {
-		return target;
+	public StateSequence getSequence() {
+		return sequence;
 	}
 
 	public ARPAEntry getEntry() {
@@ -56,6 +45,6 @@ public class TransitionEntry implements Serializable {
 
 	@Override
 	public String toString() {
-		return start + "\t" + target + "\t" + entry;
+		return sequence + "\t" + entry;
 	}
 }

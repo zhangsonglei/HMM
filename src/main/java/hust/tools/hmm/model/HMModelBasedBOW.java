@@ -26,13 +26,13 @@ public class HMModelBasedBOW implements HMModel {
 	
 	private Dictionary dict;
 	
-	private HashMap<State, ARPAEntry> pi;
+	private HashMap<State, Double> pi;
 	
-	private HashMap<StateSequence, TransitionProbEntry>  transitionMatrix;
+	private HashMap<StateSequence, ARPAEntry>  transitionMatrix;
 	
 	private HashMap<State, EmissionProbEntry>  emissionMatrix;
 	
-	public HMModelBasedBOW(int order, Dictionary dict, HashMap<State, ARPAEntry> pi, HashMap<StateSequence, TransitionProbEntry>  transitionMatrix, HashMap<State, EmissionProbEntry>  emissionMatrix) {
+	public HMModelBasedBOW(int order, Dictionary dict, HashMap<State, Double> pi, HashMap<StateSequence, ARPAEntry>  transitionMatrix, HashMap<State, EmissionProbEntry>  emissionMatrix) {
 		this.order = order;
 		this.dict = dict;
 		this.pi = pi;
@@ -48,11 +48,11 @@ public class HMModelBasedBOW implements HMModel {
 		return dict;
 	} 
 	
-	public HashMap<State, ARPAEntry> getPi() {
+	public HashMap<State, Double> getPi() {
 		return pi;
 	}
 
-	public HashMap<StateSequence, TransitionProbEntry> getTransitionMatrix() {
+	public HashMap<StateSequence, ARPAEntry> getTransitionMatrix() {
 		return transitionMatrix;
 	}
 
@@ -62,13 +62,15 @@ public class HMModelBasedBOW implements HMModel {
 	
 	@Override
 	public double transitionProb(StateSequence start, State target) {
-		if(contain(start, target))
-			return transitionMatrix.get(start).getTransitionLogProb(target);
+		StateSequence sequence = start.add(target);
 		
-		return transitionBow(start, target);
+		if(contain(sequence))
+			return transitionMatrix.get(sequence).getLog_prob();
+		
+		return transitionBow(sequence);
 	}
 	
-	private double transitionBow(StateSequence start, State target) {
+	private double transitionBow(StateSequence sequence) {
 		return 0;
 	}
 	
@@ -76,6 +78,7 @@ public class HMModelBasedBOW implements HMModel {
 		for(int index : start)
 			if(!dict.containState(index))
 				throw new IllegalArgumentException("不存在的状态索引：" + index);
+		
 		if(!dict.containState(target))
 			throw new IllegalArgumentException("不存在的状态索引：" + target);
 
@@ -84,7 +87,7 @@ public class HMModelBasedBOW implements HMModel {
 			states[i] = dict.getState(start[i]);
 		
 		State state = dict.getState(target);
-		
+				
 		return transitionProb(new StateSequence(states), state);
 	}
 
@@ -141,27 +144,45 @@ public class HMModelBasedBOW implements HMModel {
 	}
 
 	@Override
-	public double getPi(State state) {		
-		return pi.get(state).getLog_prob();
+	public double getPi(State state) {
+		if(pi.containsKey(state))
+			return pi.get(state);
+		
+		return 0;
 	}
 	
-	public double getPi(int i) {
-		return getPi(dict.getState(i));
+	public double getPi(int state) {
+		if(!dict.containState(state))
+			throw new IllegalArgumentException("不存在的状态索引：" + state);
+		
+		return getPi(dict.getState(state));
 	}
 	
-	public Observation getObservation(int i) {
-		return dict.getObservation(i);
+	public Observation getObservation(int observation) {
+		if(!dict.containState(observation))
+			throw new IllegalArgumentException("不存在的观测状态索引：" + observation);
+		
+		return dict.getObservation(observation);
 	}
 	
 	public int getObservationIndex(Observation observation) {
+		if(!dict.containObservation(observation))
+			throw new IllegalArgumentException("不存在的观测状态：" + observation);
+		
 		return dict.getIndex(observation);
 	}
 	
-	public State getState(int i) {
-		return dict.getState(i);
+	public State getState(int state) {
+		if(!dict.containState(state))
+			throw new IllegalArgumentException("不存在的状态索引：" + state);
+		
+		return dict.getState(state);
 	}
 	
 	public int getStateIndex(State state) {
+		if(!dict.containState(state))
+			throw new IllegalArgumentException("不存在的状态：" + state);
+		
 		return dict.getIndex(state);
 	}
 	
@@ -179,10 +200,9 @@ public class HMModelBasedBOW implements HMModel {
 	 * @param target	转移的的目标状态
 	 * @return			true-包含/false-不包含
 	 */
-	private boolean contain(StateSequence start, State target) {
-		if(transitionMatrix.containsKey(start))
-			if(transitionMatrix.get(start).contain(target))
-				return true;
+	private boolean contain(StateSequence sequence) {
+		if(transitionMatrix.containsKey(sequence))
+			return true;
 		
 		return false;
 	}
@@ -246,6 +266,4 @@ public class HMModelBasedBOW implements HMModel {
 			return false;
 		return true;
 	}
-	
-	
 }

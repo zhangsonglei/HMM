@@ -6,7 +6,6 @@ import java.util.HashMap;
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMModelBasedBOW;
-import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
@@ -26,9 +25,9 @@ public abstract class AbstractHMMReader {
 	
 	private Dictionary dict;
 	
-	private HashMap<State, ARPAEntry> pi;
+	private HashMap<State, Double> pi;
 	
-	private HashMap<StateSequence, TransitionProbEntry> transitionMatrix;
+	private HashMap<StateSequence, ARPAEntry> transitionMatrix;
 	
 	private HashMap<State, EmissionProbEntry> emissionMatrix;
 	
@@ -86,14 +85,14 @@ public abstract class AbstractHMMReader {
 		
 		//读取隐藏状态及其索引
 		for(int i = 0; i < statesCount; i++) {
-			DictionaryEntry entry = readDict();
-			dict.put((State) entry.getObject(), entry.getIndex());
+			StateIndex entry = readStateIndex();
+			dict.put(entry.getState(), entry.getIndex());
 		}
 		
 		//读取观测状态及其索引
 		for(int i = 0; i < observationsCount; i++) {
-			DictionaryEntry entry = readDict();
-			dict.put((Observation) entry.getObject(), entry.getIndex());
+			ObservationIndex entry = readObservationIndex();
+			dict.put(entry.getObservation(), entry.getIndex());
 		}
 	}
 	
@@ -108,7 +107,7 @@ public abstract class AbstractHMMReader {
 		
 		for(int i = 0; i < count; i++) {
 			PiEntry entry = readPi();
-			pi.put(entry.getState(), entry.getEntry());
+			pi.put(entry.getState(), entry.getLogProb());
 		}
 	}
 
@@ -123,19 +122,7 @@ public abstract class AbstractHMMReader {
 		
 		for(int i = 0; i < count; i++) {
 			TransitionEntry entry = readTransitionMatrix();
-			StateSequence start = entry.getStart();
-			State targt = entry.getTarget();
-			ARPAEntry arpaEntry = entry.getEntry();
-			TransitionProbEntry probEntry = null;
-			if(transitionMatrix.containsKey(start)) {
-				probEntry = transitionMatrix.get(start);
-				probEntry.put(targt, arpaEntry);
-				transitionMatrix.put(start, probEntry);
-			}else {
-				probEntry = new TransitionProbEntry();
-				probEntry.put(targt, arpaEntry);
-				transitionMatrix.put(start,probEntry);
-			}
+			transitionMatrix.put(entry.getSequence(), entry.getEntry());
 		}
 	}
 	
@@ -155,7 +142,6 @@ public abstract class AbstractHMMReader {
 			Observation observation = entry.getObservation();
 			double logProb = entry.getLogProb();
 
-			System.out.println(state + "\t" + observation + "\t" + logProb);
 			if(emissionMatrix.containsKey(state)) {
 				EmissionProbEntry probEntry = emissionMatrix.get(state);
 				probEntry.put(observation, logProb);
@@ -168,27 +154,31 @@ public abstract class AbstractHMMReader {
 		}
 	}
 	
-	public long readCount() throws IOException {
+	private long readCount() throws IOException {
 		return reader.readCount();
 	}
 	
-	public DictionaryEntry readDict() throws IOException, ClassNotFoundException {
-		return reader.readDict();
+	private ObservationIndex readObservationIndex() throws IOException, ClassNotFoundException {
+		return reader.readObservationIndex();
 	}
 	
-	public PiEntry readPi() throws IOException, ClassNotFoundException {
+	private StateIndex readStateIndex() throws IOException, ClassNotFoundException {
+		return reader.readStateIndex();
+	}
+	
+	private PiEntry readPi() throws IOException, ClassNotFoundException {
 		return reader.readPi();
 	}
 
-	public TransitionEntry readTransitionMatrix() throws IOException, ClassNotFoundException {
+	private TransitionEntry readTransitionMatrix() throws IOException, ClassNotFoundException {
 		return reader.readTransitionMatrix();
 	}
 	
-	public EmissionEntry readEmissionMatrix() throws IOException, ClassNotFoundException {
+	private EmissionEntry readEmissionMatrix() throws IOException, ClassNotFoundException {
 		return reader.readEmissionMatrix();
 	}
 
-	public void close() throws IOException {
+	private void close() throws IOException {
 		reader.close();
 	}
  }
