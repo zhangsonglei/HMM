@@ -10,13 +10,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import hust.tools.hmm.learn.AdditionSupervisedHMMTrainer;
-import hust.tools.hmm.utils.StringObservation;
-import hust.tools.hmm.utils.StringState;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.ObservationSequence;
 import hust.tools.hmm.utils.State;
 import hust.tools.hmm.utils.StateSequence;
+import hust.tools.hmm.utils.StringObservation;
+import hust.tools.hmm.utils.StringState;
 
 /**
  *<ul>
@@ -26,10 +26,10 @@ import hust.tools.hmm.utils.StateSequence;
  *<li>Date: 2018年1月12日
  *</ul>
  */
-public class HMMModelTest {
-
+public class HMModelBasedBOTest {
+	
 	private int order;
-	private HMModelBasedBOW model;
+	private HMModelBasedBO model;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -75,7 +75,7 @@ public class HMMModelTest {
 		samples.add(new SupervisedHMMSample(stateSequence, observationSequence));
 		
 		AdditionSupervisedHMMTrainer learner = new AdditionSupervisedHMMTrainer(samples, order, 1.0);
-		model = (HMModelBasedBOW) learner.train();
+		model = (HMModelBasedBO) learner.train();
 	}
 
 	//测试返回给定转移的概率
@@ -242,12 +242,12 @@ public class HMMModelTest {
 	//测试返回模型中隐藏状态的类型数量
 	@Test
 	public void testGetStateCount() {
-		assertEquals(5, model.getStateCount());
+		assertEquals(5, model.statesCount());
 	}
 
 	//测试返回模型中观测状态的类型数量
 	@Test
 	public void testGetObservationCount() {
-		assertEquals(4, model.getObservationCount());
+		assertEquals(4, model.observationsCount());
 	}
 }

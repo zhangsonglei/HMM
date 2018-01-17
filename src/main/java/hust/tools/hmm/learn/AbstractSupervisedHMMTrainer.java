@@ -8,7 +8,7 @@ import java.util.Set;
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMModel;
-import hust.tools.hmm.model.HMModelBasedBOW;
+import hust.tools.hmm.model.HMModelBasedBO;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
 import hust.tools.hmm.utils.Dictionary;
@@ -76,7 +76,7 @@ public abstract class AbstractSupervisedHMMTrainer implements HMMTrainer {
 		calcTransitionMatrix(counter);
 		calcEmissionMatrix(counter);
 		
-		HMModel model = new HMModelBasedBOW(order, counter.getDictionary(), pi, transitionMatrix, emissionMatrix);
+		HMModel model = new HMModelBasedBO(order, counter.getDictionary(), pi, transitionMatrix, emissionMatrix);
 		
 		return model;
 	}

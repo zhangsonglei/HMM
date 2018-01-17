@@ -1,4 +1,4 @@
-package hust.tools.hmm.pos;
+package hust.tools.hmm.demo.pos;
 
 import java.io.IOException;
 

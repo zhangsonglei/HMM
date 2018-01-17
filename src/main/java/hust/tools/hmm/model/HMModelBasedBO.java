@@ -7,18 +7,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
-import hust.tools.hmm.utils.ObservationSequence;
 import hust.tools.hmm.utils.State;
 
 /**
  *<ul>
- *<li>Description: 基于回退的隐式马尔科夫模型 
+ *<li>Description: 基于回退的隐式马尔科夫模型
  *<li>Company: HUST
  *<li>@author Sonly
  *<li>Date: 2017年12月26日
  *</ul>
  */
-public class HMModelBasedBOW implements HMModel {
+public class HMModelBasedBO implements HMModel {
 	
 	private final Observation UNKNOWN = new StringObservation("UNKNOWN");
 	
@@ -32,7 +31,7 @@ public class HMModelBasedBOW implements HMModel {
 	
 	private HashMap<State, EmissionProbEntry>  emissionMatrix;
 	
-	public HMModelBasedBOW(int order, Dictionary dict, HashMap<State, Double> pi, HashMap<StateSequence, ARPAEntry>  transitionMatrix, HashMap<State, EmissionProbEntry>  emissionMatrix) {
+	public HMModelBasedBO(int order, Dictionary dict, HashMap<State, Double> pi, HashMap<StateSequence, ARPAEntry>  transitionMatrix, HashMap<State, EmissionProbEntry>  emissionMatrix) {
 		this.order = order;
 		this.dict = dict;
 		this.pi = pi;
@@ -64,14 +63,28 @@ public class HMModelBasedBOW implements HMModel {
 	public double transitionProb(StateSequence start, State target) {
 		StateSequence sequence = start.add(target);
 		
+		return transitionProb(sequence);
+	}
+	
+	private double transitionProb(StateSequence sequence) {		
 		if(contain(sequence))
 			return transitionMatrix.get(sequence).getLog_prob();
 		
-		return transitionBow(sequence);
+		return oovTransitionProb(sequence);
 	}
 	
-	private double transitionBow(StateSequence sequence) {
-		return 0;
+	/**
+	 * 回退计算不存在的转移概率
+	 * @param oov	不存在的转移
+	 * @return		不存在的转移概率
+	 */
+	private double oovTransitionProb(StateSequence oov) {
+		StateSequence n_States = oov.remove(oov.length() - 1);
+		StateSequence _States = oov.remove(0);
+		if(contain(n_States))
+			return transitionMatrix.get(n_States).getLog_bo() + transitionProb(_States);
+		else
+			return transitionProb(_States);
 	}
 	
 	public double transitionProb(int[] start, int target) {
@@ -92,6 +105,11 @@ public class HMModelBasedBOW implements HMModel {
 	}
 
 	@Override
+	public double transitionProb(int i, int j) {
+		return transitionProb(new int[]{i}, j);
+	}
+	
+	@Override
 	public double emissionProb(State state, Observation observation) {
 		if(!dict.containState(state))
 			throw new IllegalArgumentException("不存在的隐藏状态:" + state);
@@ -105,11 +123,13 @@ public class HMModelBasedBOW implements HMModel {
 	public double emissionProb(int state, int observation) {
 		if(!dict.containState(state))
 			throw new IllegalArgumentException("不存在的状态索引：" + state);
-		else if(!dict.containObservation(observation))
-			throw new IllegalArgumentException("不存在的观测索引：" + observation);
 		
 		State si = dict.getState(state);
-		Observation ot = dict.getObservation(observation);
+		Observation ot = null;
+		if(observation != -1)
+			ot = dict.getObservation(observation);
+		else
+			ot = UNKNOWN;
 		
 		return emissionProb(si, ot);
 	}
@@ -139,11 +159,6 @@ public class HMModelBasedBOW implements HMModel {
 	}
 
 	@Override
-	public double getProb(ObservationSequence observations, StateSequence states, int order) {
-		return 0;
-	}
-
-	@Override
 	public double getPi(State state) {
 		if(pi.containsKey(state))
 			return pi.get(state);
@@ -167,7 +182,7 @@ public class HMModelBasedBOW implements HMModel {
 	
 	public int getObservationIndex(Observation observation) {
 		if(!dict.containObservation(observation))
-			throw new IllegalArgumentException("不存在的观测状态：" + observation);
+			return dict.getIndex(UNKNOWN);
 		
 		return dict.getIndex(observation);
 	}
@@ -186,11 +201,11 @@ public class HMModelBasedBOW implements HMModel {
 		return dict.getIndex(state);
 	}
 	
-	public int getStateCount() {
+	public int statesCount() {
 		return dict.stateCount();
 	}
 	
-	public int getObservationCount() {
+	public int observationsCount() {
 		return dict.observationCount();
 	}
 	
@@ -241,7 +256,7 @@ public class HMModelBasedBOW implements HMModel {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		HMModelBasedBOW other = (HMModelBasedBOW) obj;
+		HMModelBasedBO other = (HMModelBasedBO) obj;
 		if (dict == null) {
 			if (other.dict != null)
 				return false;
@@ -266,4 +281,5 @@ public class HMModelBasedBOW implements HMModel {
 			return false;
 		return true;
 	}
+
 }

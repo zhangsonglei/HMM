@@ -1,7 +1,6 @@
 package hust.tools.hmm.model;
 
 import hust.tools.hmm.utils.Observation;
-import hust.tools.hmm.utils.ObservationSequence;
 import hust.tools.hmm.utils.State;
 import hust.tools.hmm.utils.StateSequence;
 
@@ -22,13 +21,6 @@ public interface HMModel {
 	 */
 	public double getPi(State i);
 	
-	/**
-	 * 返回给定观测状态序列和隐藏状态序列在模型中的概率
-	 * @param observation	观测状态序列
-	 * @param hidden		隐藏状态序列
-	 * @return
-	 */
-	public double getProb(ObservationSequence observations, StateSequence states, int order);
 	
 	/**
 	 * 返回给定转移的转移概率
@@ -57,5 +49,17 @@ public interface HMModel {
 	 * @return	隐藏状态
 	 */
 	public State[] getStates();
+
+	public State getState(int index);
+
+	public int statesCount();
+
+	public double getPi(int i);
+
+	public int getObservationIndex(Observation observation);
+
+	public double emissionProb(int i, int j);
+
+	public double transitionProb(int i, int j);
 	
 }

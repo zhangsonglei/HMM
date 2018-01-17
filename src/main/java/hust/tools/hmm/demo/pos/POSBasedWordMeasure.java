@@ -1,4 +1,4 @@
-package hust.tools.hmm.pos;
+package hust.tools.hmm.demo.pos;
 
 import java.util.HashSet;
 
@@ -134,7 +134,7 @@ public class POSBasedWordMeasure {
      */
     @Override
     public String toString() {
-        return "Precision: " + Double.toString(getPrecisionScore()) + "\n" + "PIV: " + Double.toString(getPrecisionScoreIV()) + "\n" + "POOV: " + Double.toString(getPrecisionScoreOOV()) + "\n" + "SentenceAccuray: " + Double.toString(getSentenceAccuracy());
+        return "Precision: " + (getPrecisionScore() * 100) + "%\n" + "PIV: " + (getPrecisionScoreIV() * 100) + "%\n" + "POOV: " + (getPrecisionScoreOOV() * 100) + "%\n" + "SentenceAccuray: " + (getSentenceAccuracy() * 100) + "%";
     }
 
     private int countTruePositivesWithDictionary(final String[] words, final String[] references, final String[] predictions) {

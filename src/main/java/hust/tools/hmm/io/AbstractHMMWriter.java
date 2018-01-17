@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
-import hust.tools.hmm.model.HMModelBasedBOW;
+import hust.tools.hmm.model.HMModelBasedBO;
 import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
@@ -35,7 +35,7 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 	
 	private long[] counts;
 	
-	public AbstractHMMWriter(HMModelBasedBOW model) {
+	public AbstractHMMWriter(HMModelBasedBO model) {
 		order = model.getOrder();
 		dictionary = model.getDict();
 		pi = model.getPi();

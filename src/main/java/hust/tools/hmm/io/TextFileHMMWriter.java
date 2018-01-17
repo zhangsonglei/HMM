@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
-import hust.tools.hmm.model.HMModelBasedBOW;
+import hust.tools.hmm.model.HMModelBasedBO;
 
 /**
  *<ul>
@@ -21,22 +21,22 @@ public class TextFileHMMWriter extends AbstractHMMWriter {
 
 	private BufferedWriter bWriter;
 	
-	public TextFileHMMWriter (HMModelBasedBOW model, String filePath) throws IOException {
+	public TextFileHMMWriter (HMModelBasedBO model, String filePath) throws IOException {
 		super(model);
 		bWriter = new BufferedWriter(new FileWriter(filePath));
 	}
 	
-	public TextFileHMMWriter (HMModelBasedBOW model, File file) throws IOException {
+	public TextFileHMMWriter (HMModelBasedBO model, File file) throws IOException {
 		super(model);
 		bWriter = new BufferedWriter(new FileWriter(file));
 	}
 	
-	public TextFileHMMWriter (HMModelBasedBOW model, OutputStream os) throws IOException {
+	public TextFileHMMWriter (HMModelBasedBO model, OutputStream os) throws IOException {
 		super(model);
 		bWriter = new BufferedWriter(new OutputStreamWriter(os));
 	}
 	
-	public TextFileHMMWriter (HMModelBasedBOW model, BufferedWriter bWriter) throws IOException {
+	public TextFileHMMWriter (HMModelBasedBO model, BufferedWriter bWriter) throws IOException {
 		super(model);
 		this.bWriter = bWriter;
 	}
