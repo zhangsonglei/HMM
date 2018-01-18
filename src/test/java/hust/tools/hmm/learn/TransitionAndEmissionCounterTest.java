@@ -183,58 +183,11 @@ public class TransitionAndEmissionCounterTest {
 	@Test
 	public void testGetStartStatesCount() {
 		assertTrue(2 == counter.getStartStateCount(new StringState("1")));
+		assertTrue(0 == counter.getStartStateCount(new StringState("2")));
+		assertTrue(0 == counter.getStartStateCount(new StringState("3")));
+		assertTrue(0 == counter.getStartStateCount(new StringState("4")));
+		assertTrue(0 == counter.getStartStateCount(new StringState("5")));
+		assertTrue(1 == counter.getStartStateCount(new StringState("0")));
 		assertTrue(3 == counter.getTotalStartStatesCount());
-	}
-
-	//测试判断是否包含给定转移起点
-	@Test
-	public void testContainStateSequence() {
-		assertTrue(counter.contain(new StateSequence(states23)));
-		assertTrue(counter.contain(new StateSequence(states89)));
-		assertFalse(counter.contain(new StateSequence(states36)));
-	}
-
-	//测试判断是否包含给定转移
-	@Test
-	public void testContainTransition() {
-		State target = new StringState("4");
-		assertTrue(counter.contain(new StateSequence(states23), target));
-		assertFalse(counter.contain(new StateSequence(states89), target));
-		
-		target = new StringState("7");
-		assertFalse(counter.contain(new StateSequence(states36), target));
-	}
-	
-	//测试判断是否包含给定发射起点状态
-	@Test
-	public void testContainState() {
-		State state = new StringState("9");
-		assertTrue(counter.contain(state));
-		
-		state = new StringState("2");
-		assertTrue(counter.contain(state));
-		
-		state = new StringState("12");
-		assertFalse(counter.contain(state));
-	}
-
-	//测试判断是否包含给定发射
-	@Test
-	public void testContainEmission() {
-		State state = new StringState("9");
-		Observation observation = new StringObservation("i");
-		assertTrue(counter.contain(state, observation));
-		
-		state = new StringState("5");
-		observation = new StringObservation("c");
-		assertFalse(counter.contain(state, observation));
-		
-		state = new StringState("12");
-		observation = new StringObservation("c");
-		assertFalse(counter.contain(state, observation));
-		
-		state = new StringState("5");
-		observation = new StringObservation("z");
-		assertFalse(counter.contain(state, observation));
 	}
 }

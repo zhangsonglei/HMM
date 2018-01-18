@@ -49,12 +49,12 @@ public interface HMMWriter {
 	
 	
 	/**
-	 * 写出长整型数据 
+	 * 写出整型数据 
 	 * @param value	待写出的整型数据 
 	 * @throws IOException
 	 */
 	
-	public void writeCount(long value) throws IOException;
+	public void writeCount(int value) throws IOException;
 	
 	/**
 	 * 关闭写入流  

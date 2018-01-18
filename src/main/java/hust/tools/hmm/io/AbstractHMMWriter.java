@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
@@ -33,7 +34,7 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 	
 	private HashMap<State, EmissionProbEntry>  emissionMatrix;
 	
-	private long[] counts;
+	private int[] counts;
 	
 	public AbstractHMMWriter(HMModelBasedBO model) {
 		order = model.getOrder();
@@ -41,7 +42,7 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 		pi = model.getPi();
 		transitionMatrix = model.getTransitionMatrix();
 		emissionMatrix = model.getEmissionMatrix();
-		counts = new long[6];
+		counts = new int[6];
 		
 		statCount();
 	}
@@ -53,7 +54,7 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 		counts[3] = pi.size();						//隐藏状态数量
 		counts[4] = transitionMatrix.size();		//转移条目数量
 		
-		long total = 0;
+		int total = 0;
 		for(Entry<State, EmissionProbEntry> entry : emissionMatrix.entrySet())
 			total += entry.getValue().size();
 		
@@ -63,22 +64,18 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 	@Override
 	public void persist() throws IOException {
 		//写出各个条目的数量
-		for(long count : counts)
+		for(int count : counts)
 			writeCount(count);
 		
 		//写出隐藏状态索引
-		Iterator<State> statesIterator = dictionary.statesIterator();
-		while(statesIterator.hasNext()) {
-			State  state = statesIterator.next();
+		Set<State> statesSet = dictionary.getStates();
+		for(State state : statesSet)
 			writeStateIndex(new StateIndex(state, dictionary.getIndex(state)));
-		}
 		
 		//写出观测状态索引
-		Iterator<Observation> observationsIterator = dictionary.observationsIterator();
-		while(observationsIterator.hasNext()) {
-			Observation  observation = observationsIterator.next();
+		Set<Observation> observationsSet = dictionary.getObservations();
+		for(Observation observation : observationsSet) 
 			writeObservationIndex(new ObservationIndex(observation, dictionary.getIndex(observation)));
-		}
 		
 		//写出初始转移向量
 		for(Entry<State, Double> entry : pi.entrySet())

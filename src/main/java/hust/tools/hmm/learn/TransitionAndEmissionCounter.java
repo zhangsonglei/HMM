@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.Map.Entry;
-
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
 import hust.tools.hmm.utils.CommonUtils;
@@ -35,7 +33,7 @@ public class TransitionAndEmissionCounter {
 	/**
 	 * 序列的计数
 	 */
-	private HashMap<StateSequence, Long> transitionCountMap;
+	private HashMap<StateSequence, Integer> transitionCountMap;
 	
 	/**
 	 * 记录状态序列后缀
@@ -60,7 +58,7 @@ public class TransitionAndEmissionCounter {
 	/**
 	 * 所有隐藏状态的总数量
 	 */
-	private long totalStatesCount;
+	private int totalStatesCount;
 	
 	/**
 	 * 默认HMM阶数
@@ -114,6 +112,7 @@ public class TransitionAndEmissionCounter {
 		dict.add(observationSequence);
 		
 		totalStatesCount += stateSequence.length();
+		totalStartStateCount++;
 		
 		//统计起始隐藏状态
 		add(stateSequence.get(0));		
@@ -133,6 +132,9 @@ public class TransitionAndEmissionCounter {
 		}		
 	}
 	
+	/**
+	 * 初始化数据
+	 */
 	private void init() {
 		dict = new Dictionary();
 		transitionCountMap = new HashMap<>();
@@ -152,24 +154,23 @@ public class TransitionAndEmissionCounter {
 			startStateCount.put(state, startStateCount.get(state) + 1);
 		else 
 			startStateCount.put(state, 1);
-		
-		totalStartStateCount++;
 	}
 	
 	/**
-	 * 增加一条发射，并统计历史发射的所有目标状态
+	 * 增加一条转移，并统计历史转移的所有目标状态（统计n元串计数及其后缀）
 	 * @param sequence	发射
 	 */
 	private void add(StateSequence sequence) {
 		if(transitionCountMap.containsKey(sequence)) 
 			transitionCountMap.put(sequence, transitionCountMap.get(sequence) + 1);
 		else
-			transitionCountMap.put(sequence, 1L);
+			transitionCountMap.put(sequence, 1);
 		
 		//统计后缀
 		if(sequence.length() > 1) {
 			StateSequence states = sequence.remove(sequence.length() - 1);
 			State suffix = sequence.get(sequence.length() - 1);
+			
 			Set<State> set = null;
 			if(stateSuffix.containsKey(states)) 
 				set = stateSuffix.get(states);
@@ -187,15 +188,14 @@ public class TransitionAndEmissionCounter {
 	 * @param observation	发射的观测
 	 */
 	private void add(State state, Observation observation) {
-		if(emissionCountMap.containsKey(state)) {
-			EmissionCountEntry entry = emissionCountMap.get(state);
-			entry.add(observation);
-			emissionCountMap.put(state, entry);
-		}else {
-			EmissionCountEntry entry = new EmissionCountEntry();
-			entry.add(observation);
-			emissionCountMap.put(state, entry);
-		}
+		EmissionCountEntry entry = null;
+		if(emissionCountMap.containsKey(state)) 
+			entry = emissionCountMap.get(state);
+		else 
+			entry = new EmissionCountEntry();
+		
+		entry.add(observation);
+		emissionCountMap.put(state, entry);
 	}
 	
 	/**
@@ -206,7 +206,7 @@ public class TransitionAndEmissionCounter {
 		return order;
 	}
 	
-	public long getTotalStatesCount() {
+	public int getTotalStatesCount() {
 		return totalStatesCount;
 	}
 		
@@ -215,7 +215,7 @@ public class TransitionAndEmissionCounter {
 	 * @param sequence	序列
 	 * @return			序列的总数量
 	 */
-	public long getSequenceCount(StateSequence sequence) {
+	public int getSequenceCount(StateSequence sequence) {
 		if(transitionCountMap.containsKey(sequence))
 			return transitionCountMap.get(sequence);
 		
@@ -228,9 +228,10 @@ public class TransitionAndEmissionCounter {
 	 * @param target	发射的终点
 	 * @return			发射的数量
 	 */
-	public long getTransitionCount(StateSequence start, State target) {
-		if(contain(start, target))
-			return transitionCountMap.get(start.add(target));
+	public int getTransitionCount(StateSequence start, State target) {
+		StateSequence sequence = start.add(target);
+		if(contain(sequence))
+			return transitionCountMap.get(sequence);
 		
 		return 0;
 	}
@@ -241,17 +242,13 @@ public class TransitionAndEmissionCounter {
 		
 		return null;
 	}
-	
-	public Set<Entry<StateSequence, Set<State>>> suffixsEntrySet() {
-		return stateSuffix.entrySet();
-	}
-	
+
 	/**
 	 * 返回以给定state发射的总数量
 	 * @param state	给定state
 	 * @return		发射的总数量
 	 */
-	public long getStateCount(State state) {
+	public int getStateCount(State state) {
 		return emissionCountMap.get(state).getTotal();
 	}
 
@@ -261,9 +258,9 @@ public class TransitionAndEmissionCounter {
 	 * @param observation	发射的观测
 	 * @return				发射的数量
 	 */
-	public long getEmissionCount(State state, Observation observation) {
-		if(emissionCountMap.containsKey(state))
-			return emissionCountMap.get(state).getEmissionCount(observation);
+	public int getEmissionCount(State state, Observation observation) {
+		if(contain(state, observation))
+			return emissionCountMap.get(state).getObservationCount(observation);
 		
 		return 0;
 	}
@@ -286,22 +283,6 @@ public class TransitionAndEmissionCounter {
 	 */
 	public int getTotalStartStatesCount() {
 		return totalStartStateCount;
-	}
-	
-	/**
-	 * 返回隐藏状态的集合
-	 * @return	隐藏状态的集合
-	 */
-	public Set<State> getStates() {
-		return dict.getStates();
-	}
-	
-	/**
-	 * 返回观测状态的集合
-	 * @return	观测状态的集合
-	 */
-	public Set<Observation> getObservations() {
-		return dict.getObservations();
 	}
 	
 	/**
@@ -338,23 +319,11 @@ public class TransitionAndEmissionCounter {
 	}
 	
 	/**
-	 * 返回给定发射状态的所有发射信息（发射的目标观测状态及其计数）
-	 * @param state	发射状态
-	 * @return		发射状态的所有发射信息
-	 */
-	public EmissionCountEntry get(State state) {
-		if(contain(state))
-			return emissionCountMap.get(state);
-		
-		return null;
-	}
-	
-	/**
 	 * 返回是否包含以state为发射的状态
 	 * @param state	待判断的发射
 	 * @return		true-包含/false-不包含
 	 */
-	public boolean contain(State state) {
+	private boolean contain(State state) {
 		return emissionCountMap.containsKey(state);
 	}
 	
@@ -364,7 +333,7 @@ public class TransitionAndEmissionCounter {
 	 * @param observation	发射的观测
 	 * @return				true-包含/false-不包含
 	 */
-	public boolean contain(State state, Observation observation) {
+	private boolean contain(State state, Observation observation) {
 		if(contain(state))
 			return emissionCountMap.get(state).contain(observation);
 		
@@ -376,11 +345,7 @@ public class TransitionAndEmissionCounter {
 	 * @param sequence	待判断的状态序列
 	 * @return			true-包含/false-不包含
 	 */
-	public boolean contain(StateSequence sequence) {
+	private boolean contain(StateSequence sequence) {
 		return transitionCountMap.containsKey(sequence);
-	}
-	
-	public boolean contain(StateSequence start, State target) {
-		return transitionCountMap.containsKey(start.add(target));
 	}
 }

@@ -13,11 +13,13 @@ public class POSEval {
 	private HMM model;
 	private List<SupervisedHMMSample> samples;
 	private HashSet<String> dict;
+	private int order;
 		
-	public POSEval(HMM model, HashSet<String> dict, List<SupervisedHMMSample> samples) {
+	public POSEval(HMM model, HashSet<String> dict, List<SupervisedHMMSample> samples, int order) {
 		this.model = model;
 		this.dict = dict;
 		this.samples = samples;
+		this.order = order;
 	}
 	
 	public void eval() {
@@ -28,7 +30,7 @@ public class POSEval {
 //			System.out.println(refStateSeuence);
 			
 			ObservationSequence wordSequence = sample.getObservationSequence();
-			StateSequence preStateSeuence = model.bestStateSeqence(wordSequence, 1);
+			StateSequence preStateSeuence = model.bestStateSeqence(wordSequence, order);
 //			System.out.println(preStateSeuence);
 			String[] words = new String[wordSequence.length()];
 			String[] refPOS = new String[refStateSeuence.length()];

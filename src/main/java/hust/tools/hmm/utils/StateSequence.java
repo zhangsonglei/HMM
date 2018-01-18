@@ -73,7 +73,7 @@ public class StateSequence implements Sequence<State> {
 	@Override
 	public StateSequence remove(int index) {
 		if(length() <= 1)
-			return null;
+			return new StateSequence();
 		
 		State[] arr = new State[length() - 1];
 		for(int i = 0, j = 0; i < states.length; i++) {

@@ -6,8 +6,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+
 import hust.tools.hmm.learn.AbstractSupervisedHMMTrainer;
-import hust.tools.hmm.learn.AdditionSupervisedHMMTrainer;
+import hust.tools.hmm.learn.SupervisedAdditionHMMTrainer;
 import hust.tools.hmm.learn.TransitionAndEmissionCounter;
 import hust.tools.hmm.model.HMM;
 import hust.tools.hmm.model.HMMWithViterbi;
@@ -18,8 +19,8 @@ import hust.tools.hmm.utils.Observation;
 public class POSTagger {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException {
-		File file = new File("E:\\JOB\\hmm\\data\\wordTagCorpus.txt");
-		
+		File file = new File("E:\\JOB\\hmm\\data\\conll.pos");
+//		File file = new File("E:\\JOB\\hmm\\data\\pos.train");
 		long start = System.currentTimeMillis();
 		List<SupervisedHMMSample> samples = POSTrainCorpusReader.read(file);
 		long read = System.currentTimeMillis();
@@ -38,7 +39,9 @@ public class POSTagger {
 		System.out.println("total = " + samples.size() + "\ttrainSize = " + trainSamples.size() + "\ttestSize = " + testSamples.size());
 		
 		
-		HMModelBasedBO hmModel = train(trainSamples, 1);
+		int order = 3;
+		
+		HMModelBasedBO hmModel = train(trainSamples, order);
 		long train = System.currentTimeMillis();
 		System.out.println("训练模型时间："+(train - read) / 1000.0 + "s");
 		
@@ -58,34 +61,20 @@ public class POSTagger {
 		for(Observation observation : observations)
 			dict.add(observation.toString());
 				
-		POSEval evaluator = new POSEval(hmm, dict, testSamples);
+		POSEval evaluator = new POSEval(hmm, dict, testSamples, order);
 		evaluator.eval();
 		long eval = System.currentTimeMillis();
 		System.out.println("解码时间："+(eval - train) / 1000.0 + "s");
-//
-////		/p	/j	/n	/vn	/f	/vd	/v	/w	/t	/n	
-//		Observation[] testObservaitons = new StringObservation[]{
-//				new StringObservation("在"),
-//				new StringObservation("十五大"),
-//				new StringObservation("精神"),
-//				new StringObservation("指引"),
-//				new StringObservation("下"),
-//				new StringObservation("胜利"),
-//				new StringObservation("前进"),
-//				new StringObservation("——"),
-//				new StringObservation("元旦"),
-//				new StringObservation("献辞")};
-//		ObservationSequence sequence = new ObservationSequence(testObservaitons);
-//		System.out.println(hmm.bestStateSeqence(sequence, 1));
-//		System.out.println(hmm.getProb(sequence, 1));
 	}
 	
 	private static HMModelBasedBO train(List<SupervisedHMMSample> samples, int order) throws IOException {
 		TransitionAndEmissionCounter counter = new TransitionAndEmissionCounter(samples, order);
-		AbstractSupervisedHMMTrainer learner = new AdditionSupervisedHMMTrainer(counter);
+		AbstractSupervisedHMMTrainer learner = new SupervisedAdditionHMMTrainer(counter, 1.0);
+//		AbstractSupervisedHMMTrainer learner = new SupervisedMLHMMTrainer(counter);
+		
 		return (HMModelBasedBO) learner.train();
 	}
-//	
+	
 //	/**
 //	 * 写模型
 //	 * @param model		

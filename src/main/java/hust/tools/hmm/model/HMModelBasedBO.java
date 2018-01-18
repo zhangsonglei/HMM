@@ -4,7 +4,8 @@ import hust.tools.hmm.utils.StateSequence;
 import hust.tools.hmm.utils.StringObservation;
 
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Set;
+
 import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
@@ -39,35 +40,38 @@ public class HMModelBasedBO implements HMModel {
 		this.emissionMatrix = emissionMatrix;
 	}
 	
+	@Override
 	public int getOrder() {
 		return order;
 	}
 	
+	@Override
 	public Dictionary getDict() {
 		return dict;
 	} 
 	
+	@Override
 	public HashMap<State, Double> getPi() {
 		return pi;
 	}
 
+	@Override
 	public HashMap<StateSequence, ARPAEntry> getTransitionMatrix() {
 		return transitionMatrix;
 	}
 
+	@Override
 	public HashMap<State, EmissionProbEntry> getEmissionMatrix() {
 		return emissionMatrix;
 	}
 	
 	@Override
-	public double transitionProb(StateSequence start, State target) {
-		StateSequence sequence = start.add(target);
-		
-		return transitionProb(sequence);
+	public double transitionLogProb(StateSequence start, State target) {		
+		return transitionLogProb(start.add(target));
 	}
 	
-	private double transitionProb(StateSequence sequence) {		
-		if(contain(sequence))
+	private double transitionLogProb(StateSequence sequence) {		
+		if(transitionMatrix.containsKey(sequence))
 			return transitionMatrix.get(sequence).getLog_prob();
 		
 		return oovTransitionProb(sequence);
@@ -81,105 +85,73 @@ public class HMModelBasedBO implements HMModel {
 	private double oovTransitionProb(StateSequence oov) {
 		StateSequence n_States = oov.remove(oov.length() - 1);
 		StateSequence _States = oov.remove(0);
-		if(contain(n_States))
-			return transitionMatrix.get(n_States).getLog_bo() + transitionProb(_States);
+		
+		if(transitionMatrix.containsKey(n_States))
+			return transitionMatrix.get(n_States).getLog_bo() + transitionLogProb(_States);
 		else
-			return transitionProb(_States);
+			return transitionLogProb(_States);
 	}
 	
-	public double transitionProb(int[] start, int target) {
-		for(int index : start)
-			if(!dict.containState(index))
-				throw new IllegalArgumentException("不存在的状态索引：" + index);
-		
-		if(!dict.containState(target))
-			throw new IllegalArgumentException("不存在的状态索引：" + target);
-
-		State[] states = new State[start.length];
-		for(int i = 0; i < start.length; i++)
+	private double transitionLogProb(int[] start, int target) {
+		State[] states = new State[start.length + 1];
+		int i = 0;
+		for(i = 0; i < start.length; i++)
 			states[i] = dict.getState(start[i]);
 		
-		State state = dict.getState(target);
+		states[i] = dict.getState(target);
 				
-		return transitionProb(new StateSequence(states), state);
+		return transitionLogProb(new StateSequence(states));
 	}
 
 	@Override
-	public double transitionProb(int i, int j) {
-		return transitionProb(new int[]{i}, j);
+	public double transitionLogProb(int i, int j) {
+		return transitionLogProb(new int[]{i}, j);
 	}
 	
 	@Override
-	public double emissionProb(State state, Observation observation) {
-		if(!dict.containState(state))
-			throw new IllegalArgumentException("不存在的隐藏状态:" + state);
-		
-		if(contain(state, observation))
+	public double emissionLogProb(State state, Observation observation) {
+		if(emissionMatrix.get(state).contain(observation))
 			return emissionMatrix.get(state).getEmissionLogProb(observation);
-		
+					
 		return emissionMatrix.get(state).getEmissionLogProb(UNKNOWN);
 	}
 	
-	public double emissionProb(int state, int observation) {
-		if(!dict.containState(state))
-			throw new IllegalArgumentException("不存在的状态索引：" + state);
-		
+	@Override
+	public double emissionLogProb(int state, int observation) {
 		State si = dict.getState(state);
-		Observation ot = null;
-		if(observation != -1)
-			ot = dict.getObservation(observation);
-		else
-			ot = UNKNOWN;
+		Observation ot = (observation != -1) ? dict.getObservation(observation) : UNKNOWN;
 		
-		return emissionProb(si, ot);
+		return emissionLogProb(si, ot);
 	}
 
 	@Override
 	public Observation[] getObservations() {
-		Iterator<Observation> iterator = dict.observationsIterator();
-		Observation[] observations = new Observation[dict.observationCount()];
-		int i = 0;
-		while(iterator.hasNext()) {
-			observations[i++] = iterator.next();
-		}
+		Set<Observation> set = dict.getObservations();
 		
-		return observations;
+		return set.toArray(new Observation[set.size()]);
 	}
 
 	@Override
 	public State[] getStates() {
-		Iterator<State> iterator = dict.statesIterator();
-		State[] states = new State[dict.stateCount()];
-		int i = 0;
-		while(iterator.hasNext()) {
-			states[i++] = iterator.next();
-		}
+		Set<State> set = dict.getStates();
 		
-		return states;
+		return set.toArray(new State[set.size()]);
 	}
 
 	@Override
-	public double getPi(State state) {
+	public double getLogPi(State state) {
 		if(pi.containsKey(state))
 			return pi.get(state);
 		
 		return 0;
 	}
 	
-	public double getPi(int state) {
-		if(!dict.containState(state))
-			throw new IllegalArgumentException("不存在的状态索引：" + state);
-		
-		return getPi(dict.getState(state));
+	@Override
+	public double getLogPi(int state) {		
+		return getLogPi(dict.getState(state));
 	}
 	
-	public Observation getObservation(int observation) {
-		if(!dict.containState(observation))
-			throw new IllegalArgumentException("不存在的观测状态索引：" + observation);
-		
-		return dict.getObservation(observation);
-	}
-	
+	@Override
 	public int getObservationIndex(Observation observation) {
 		if(!dict.containObservation(observation))
 			return dict.getIndex(UNKNOWN);
@@ -187,53 +159,14 @@ public class HMModelBasedBO implements HMModel {
 		return dict.getIndex(observation);
 	}
 	
-	public State getState(int state) {
-		if(!dict.containState(state))
-			throw new IllegalArgumentException("不存在的状态索引：" + state);
-		
+	@Override
+	public State getState(int state) {		
 		return dict.getState(state);
 	}
 	
-	public int getStateIndex(State state) {
-		if(!dict.containState(state))
-			throw new IllegalArgumentException("不存在的状态：" + state);
-		
-		return dict.getIndex(state);
-	}
-	
+	@Override
 	public int statesCount() {
 		return dict.stateCount();
-	}
-	
-	public int observationsCount() {
-		return dict.observationCount();
-	}
-	
-	/**
-	 * 判断是否包含给定转移
-	 * @param start		转移的的起点
-	 * @param target	转移的的目标状态
-	 * @return			true-包含/false-不包含
-	 */
-	private boolean contain(StateSequence sequence) {
-		if(transitionMatrix.containsKey(sequence))
-			return true;
-		
-		return false;
-	}
-	
-	/**
-	 * 判断是否包含给定发射
-	 * @param state			发射的隐藏状态
-	 * @param observation	发射的观测状态
-	 * @return				true-包含/false-不包含
-	 */
-	private boolean contain(State state, Observation observation) {
-		if(emissionMatrix.containsKey(state))
-			if(emissionMatrix.get(state).contain(observation))
-				return true;
-		
-		return false;
 	}
 
 	@Override

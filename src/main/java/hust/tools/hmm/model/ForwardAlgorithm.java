@@ -57,7 +57,7 @@ public class ForwardAlgorithm {
 		
 		int firstObservation = model.getObservationIndex(observations.get(0));
 		for(int i = 0; i < count; i++)
-			alpha[0][i] = model.getPi(i) + model.emissionProb(i, firstObservation);
+			alpha[0][i] = model.getLogPi(i) + model.emissionLogProb(i, firstObservation);
 	}
 	
 	/**
@@ -70,10 +70,10 @@ public class ForwardAlgorithm {
 		double sum = 0;
 		
 		for(int i = 0; i < model.statesCount(); i++)
-			sum += Math.pow(10, alpha[t - 1][i] + model.transitionProb(i, j));
+			sum += Math.pow(10, alpha[t - 1][i] + model.transitionLogProb(i, j));
 		
 		int observation = model.getObservationIndex(observations.get(t));//观测状态的索引
-		alpha[t][j] = Math.log10(sum) + model.emissionProb(j, observation);
+		alpha[t][j] = Math.log10(sum) + model.emissionLogProb(j, observation);
 	}
 	
 	/**

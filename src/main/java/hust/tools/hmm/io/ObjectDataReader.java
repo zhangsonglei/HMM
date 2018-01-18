@@ -25,8 +25,8 @@ public class ObjectDataReader implements DataReader {
 	}
 
 	@Override
-	public long readCount() throws IOException {
-		return ois.readLong();
+	public int readCount() throws IOException {
+		return ois.readInt();
 	}
 
 	@Override

@@ -8,7 +8,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import hust.tools.hmm.learn.AdditionSupervisedHMMTrainer;
+import hust.tools.hmm.learn.SupervisedAdditionHMMTrainer;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.ObservationSequence;
@@ -75,7 +75,7 @@ public class HMMWithViterbiTest {
 		observationSequence = new ObservationSequence(observations);
 		samples.add(new SupervisedHMMSample(stateSequence, observationSequence));
 		
-		AdditionSupervisedHMMTrainer learner = new AdditionSupervisedHMMTrainer(samples, order, 1.0);
+		SupervisedAdditionHMMTrainer learner = new SupervisedAdditionHMMTrainer(samples, order, 1.0);
 		model = new HMMWithViterbi(learner.train());
 		
 		Observation[] testObservaitons = new StringObservation[]{

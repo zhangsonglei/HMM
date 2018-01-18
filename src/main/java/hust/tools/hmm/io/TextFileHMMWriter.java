@@ -42,8 +42,8 @@ public class TextFileHMMWriter extends AbstractHMMWriter {
 	}
 
 	@Override
-	public void writeCount(long count) throws IOException {
-		bWriter.write(Long.toString(count));
+	public void writeCount(int count) throws IOException {
+		bWriter.write(Integer.toString(count));
 		bWriter.newLine();
 	}
 

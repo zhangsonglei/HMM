@@ -40,8 +40,8 @@ public class TextDataReader implements DataReader {
 	}
 
 	@Override
-	public long readCount() throws IOException {
-		return Long.parseLong(bufferedReader.readLine());
+	public int readCount() throws IOException {
+		return Integer.parseInt(bufferedReader.readLine());
 	}
 
 	@Override

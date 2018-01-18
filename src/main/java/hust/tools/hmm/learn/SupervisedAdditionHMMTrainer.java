@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Set;
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
+import hust.tools.hmm.model.HMModel;
+import hust.tools.hmm.model.HMModelBasedBO;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
 import hust.tools.hmm.utils.Observation;
@@ -14,13 +16,13 @@ import hust.tools.hmm.utils.StateSequence;
 
 /**
  *<ul>
- *<li>Description: 基于加法平滑的监督学习训练类 
+ *<li>Description: 基于加法平滑的监督学习模型训练类器
  *<li>Company: HUST
  *<li>@author Sonly
  *<li>Date: 2018年1月10日
  *</ul>
  */
-public class AdditionSupervisedHMMTrainer extends AbstractSupervisedHMMTrainer {
+public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 
 	/**
 	 * 默认加1(Laplace)平滑
@@ -32,34 +34,45 @@ public class AdditionSupervisedHMMTrainer extends AbstractSupervisedHMMTrainer {
 	 */
 	private double delta;
 	
-	public AdditionSupervisedHMMTrainer(TransitionAndEmissionCounter counter) {
+	public SupervisedAdditionHMMTrainer(TransitionAndEmissionCounter counter) {
 		super(counter);
 		this.delta = DEFAULT_DELTA;
 	}
 	
-	public AdditionSupervisedHMMTrainer(TransitionAndEmissionCounter counter, double delta) {
+	public SupervisedAdditionHMMTrainer(TransitionAndEmissionCounter counter, double delta) {
 		super(counter);
 		this.delta = delta <= 0 ? DEFAULT_DELTA : delta;
 	}
 	
-	public AdditionSupervisedHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
+	public SupervisedAdditionHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
 		super(sampleStream, order);
 		this.delta = DEFAULT_DELTA;
 	}
 	
-	public AdditionSupervisedHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order, double delta) throws IOException {
+	public SupervisedAdditionHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order, double delta) throws IOException {
 		super(sampleStream, order);
 		this.delta = delta <= 0 ? DEFAULT_DELTA : delta;
 	}
 	
-	public AdditionSupervisedHMMTrainer(List<SupervisedHMMSample> samples, int order) throws IOException {
+	public SupervisedAdditionHMMTrainer(List<SupervisedHMMSample> samples, int order) throws IOException {
 		super(samples, order);
 		this.delta = DEFAULT_DELTA;
 	}
 	
-	public AdditionSupervisedHMMTrainer(List<SupervisedHMMSample> samples, int order, double delta) throws IOException {
+	public SupervisedAdditionHMMTrainer(List<SupervisedHMMSample> samples, int order, double delta) throws IOException {
 		super(samples, order);
 		this.delta = delta <= 0 ? DEFAULT_DELTA : delta;
+	}
+	
+	@Override
+	public HMModel train() {
+		calcPi(counter);
+		calcTransitionMatrix(counter);
+		calcEmissionMatrix(counter);
+		
+		HMModel model = new HMModelBasedBO(order, counter.getDictionary(), pi, transitionMatrix, emissionMatrix);
+		
+		return model;
 	}
 	
 	/**
@@ -71,13 +84,10 @@ public class AdditionSupervisedHMMTrainer extends AbstractSupervisedHMMTrainer {
 		int N = dict.stateCount();
 		int M = counter.getTotalStartStatesCount();
 		
-		Iterator<State> iterator = counter.getDictionary().statesIterator();
-		State state = null;
-		while(iterator.hasNext()) {
-			state = iterator.next();
+		Set<State> set = counter.getDictionary().getStates();
+		for(State state : set) {
 			int count = counter.getStartStateCount(state);
 			double prob = (count + 1.0) / (M + N);
-			
 			pi.put(state, Math.log10(prob));
 		}
 	}
@@ -88,12 +98,13 @@ public class AdditionSupervisedHMMTrainer extends AbstractSupervisedHMMTrainer {
 		while(iterator.hasNext()) {//遍历所有转移状态,计算转移概率
 			StateSequence sequence = iterator.next();
 			
-			long nCount = counter.getSequenceCount(sequence);
-			long n_Count = 0;
+			int nCount = counter.getSequenceCount(sequence);
+			int n_Count = 0;
 			if(sequence.length() == 1)
 				n_Count = counter.getTotalStatesCount();
 			else {//保证归一化
 				StateSequence n_States = sequence.remove(sequence.length() - 1);
+				
 				Set<State> suffixs = counter.getSuffixs(n_States);
 				for(State suffix : suffixs) 
 					n_Count += counter.getSequenceCount(n_States.add(suffix));
@@ -122,16 +133,19 @@ public class AdditionSupervisedHMMTrainer extends AbstractSupervisedHMMTrainer {
 	 */	
 	protected void calcEmissionMatrix(TransitionAndEmissionCounter counter) {
 		Iterator<State> iterator = counter.emissionIterator();
-		long N = counter.getDictionary().observationCount();//观测状态的类型数
-		while(iterator.hasNext()) {//遍历所有发射状态
+		int N = counter.getDictionary().observationCount();//观测状态的类型数
+		
+		while(iterator.hasNext()) {//遍历所有发射
 			State state = iterator.next();
 			Iterator<Observation> observationsIterator = counter.iterator(state);
-			long M = counter.getStateCount(state);//以state为发射起点的总数量
+			int M = counter.getStateCount(state);//以state为发射起点的总数量
+			
 			EmissionProbEntry emissionProbEntry = new EmissionProbEntry();
 			while(observationsIterator.hasNext()) {//计算当前状态的所有发射概率
 				Observation observation = observationsIterator.next();
-				long C = counter.getEmissionCount(state, observation);//当前发射的数量
-				double prob = 1.0 * (C + 1) / (M + N);
+				int C = counter.getEmissionCount(state, observation);//当前发射的数量
+				double prob = (C + 1.0) / (M + N);
+//				double prob = C * 1.0 / M;
 				emissionProbEntry.put(observation, Math.log10(prob));
 			}
 

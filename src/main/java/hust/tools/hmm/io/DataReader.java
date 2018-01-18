@@ -13,12 +13,12 @@ import java.io.IOException;
 public interface DataReader {
 	
 	/**
-	 * 读入长整型数据 
-	 * @return 长整型数据 
+	 * 读入整型数据 
+	 * @return 整型数据 
 	 * @throws IOException
 	 */
 	
-	public long readCount() throws IOException;
+	public int readCount() throws IOException;
 	
 	/**
 	 * 读入观测状态索引

@@ -31,7 +31,7 @@ public abstract class AbstractHMMReader {
 	
 	private HashMap<State, EmissionProbEntry> emissionMatrix;
 	
-	private long[] counts;
+	private int[] counts;
 	
 	private DataReader reader;
 	
@@ -46,14 +46,14 @@ public abstract class AbstractHMMReader {
 	 * @throws ClassNotFoundException
 	 */
 	public HMModelBasedBO readModel() throws IOException, ClassNotFoundException {
-		counts = new long[6];
+		counts = new int[6];
 		
 		//读取模型各参数的数量
 		for(int i = 0; i < 6; i++)
 			counts[i] = readCount();
 		
 		//模型阶数
-		order = (int) counts[0];
+		order = counts[0];
 		
 		//构造字典
 		constructDict(counts[1], counts[2]);
@@ -80,7 +80,7 @@ public abstract class AbstractHMMReader {
 	 * @throws IOException 
 	 * @throws ClassNotFoundException 
 	 */
-	private void constructDict(long statesCount, long observationsCount) throws IOException, ClassNotFoundException {
+	private void constructDict(int statesCount, int observationsCount) throws IOException, ClassNotFoundException {
 		dict = new Dictionary();
 		
 		//读取隐藏状态及其索引
@@ -102,7 +102,7 @@ public abstract class AbstractHMMReader {
 	 * @throws IOException
 	 * @throws ClassNotFoundException 
 	 */
-	private void constructPi(long count) throws IOException, ClassNotFoundException {
+	private void constructPi(int count) throws IOException, ClassNotFoundException {
 		pi = new HashMap<>();
 		
 		for(int i = 0; i < count; i++) {
@@ -117,7 +117,7 @@ public abstract class AbstractHMMReader {
 	 * @throws IOException
 	 * @throws ClassNotFoundException 
 	 */
-	private void constructTransitionMatrix(long count) throws IOException, ClassNotFoundException {
+	private void constructTransitionMatrix(int count) throws IOException, ClassNotFoundException {
 		transitionMatrix = new HashMap<>();
 		
 		for(int i = 0; i < count; i++) {
@@ -132,7 +132,7 @@ public abstract class AbstractHMMReader {
 	 * @throws IOException
 	 * @throws ClassNotFoundException 
 	 */
-	private void constructEmissionMatrix(long count) throws IOException, ClassNotFoundException {
+	private void constructEmissionMatrix(int count) throws IOException, ClassNotFoundException {
 		emissionMatrix = new HashMap<>();
 		
 		for(int i = 0; i < count; i++) {
@@ -154,7 +154,7 @@ public abstract class AbstractHMMReader {
 		}
 	}
 	
-	private long readCount() throws IOException {
+	private int readCount() throws IOException {
 		return reader.readCount();
 	}
 	

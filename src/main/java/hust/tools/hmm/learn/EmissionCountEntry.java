@@ -20,28 +20,23 @@ public class EmissionCountEntry {
 	/**
 	 * 发射的起始状态数量
 	 */
-	private long total;
+	private int total;
 	
 	/**
 	 * 发射到某个观测状态的数量
 	 */
-	private HashMap<Observation, Long> emissionCount;
+	private HashMap<Observation, Integer> emissionCount;
 	
 	public EmissionCountEntry() {
 		total = 0;
 		emissionCount = new HashMap<>();
 	}
 	
-	public EmissionCountEntry(HashMap<Observation, Long> emissionCount) {
-		total = 0;
-		this.emissionCount = emissionCount;
-	}
-	
 	/**
 	 * 返回发射的起始状态总数量
 	 * @return	起始状态总数量
 	 */
-	public long getTotal() {
+	public int getTotal() {
 		return total;
 	}
 	
@@ -53,7 +48,7 @@ public class EmissionCountEntry {
 		if(emissionCount.containsKey(observation))
 			emissionCount.put(observation, emissionCount.get(observation) + 1);
 		else
-			emissionCount.put(observation, 1L);
+			emissionCount.put(observation, 1);
 		
 		total++;
 	}
@@ -63,11 +58,11 @@ public class EmissionCountEntry {
 	 * @param observation	目标观测状态
 	 * @return				数量大小
 	 */
-	public long getEmissionCount(Observation observation) {
+	public int getObservationCount(Observation observation) {
 		if(emissionCount.containsKey(observation))
 			return emissionCount.get(observation);
-		else
-			return 0;
+
+		return 0;
 	}
 	
 	/**
@@ -83,7 +78,7 @@ public class EmissionCountEntry {
 	 * 返回该发射的所有目标观测状态迭代器
 	 * @return	该发射的所有目标观测状态迭代器
 	 */
-	public Iterator<Entry<Observation, Long>> entryIterator() {
+	public Iterator<Entry<Observation, Integer>> entryIterator() {
 		return emissionCount.entrySet().iterator();
 	}
 	
@@ -101,17 +96,6 @@ public class EmissionCountEntry {
 	 */
 	public Set<Observation> getObservations() {
 		return emissionCount.keySet();
-	}
-	
-	/**
-	 * 删除目标观测状态
-	 * @param state	待删除的目标观测状态
-	 */
-	public void remove(Observation observation) {
-		if(contain(observation)) {
-			total -= getEmissionCount(observation);
-			emissionCount.remove(observation);
-		}
 	}
 	
 	/**

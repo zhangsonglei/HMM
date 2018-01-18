@@ -1,7 +1,6 @@
 package hust.tools.hmm.utils;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -36,7 +35,7 @@ public class Dictionary {
 	 * @param state	增加的隐藏状态
 	 * @return		加上索引的隐藏状态
 	 */
-	public void add(State state) {
+	private void add(State state) {
 		if(!containState(state)) {
 			stateToIndex.put(state, state_index);
 			indexToState.put(state_index, state);
@@ -80,7 +79,7 @@ public class Dictionary {
 	 * @param state	增加的观测状态
 	 * @return		加上索引的观测状态序列
 	 */
-	public void add(Observation observation) {
+	private void add(Observation observation) {
 		if(!containObservation(observation)) {
 			observationToIndex.put(observation, observation_index);
 			indexToObservation.put(observation_index, observation);
@@ -147,14 +146,6 @@ public class Dictionary {
 	}
 	
 	/**
-	 * 返回隐藏状态的迭代器
-	 * @return	迭代器
-	 */
-	public Iterator<State> statesIterator() {
-		return stateToIndex.keySet().iterator();
-	}
-	
-	/**
 	 * 返回隐藏状态的集合
 	 * @return	隐藏状态的集合
 	 */
@@ -179,16 +170,13 @@ public class Dictionary {
 		return stateToIndex.containsKey(state);
 	}
 	
+	/**
+	 * 判断是否包含给定索引对应的隐藏状态
+	 * @param index
+	 * @return
+	 */
 	public boolean containState(int index) {
 		return indexToState.containsKey(index);
-	}
-	
-	/**
-	 * 返回观测状态的迭代器
-	 * @return	迭代器
-	 */
-	public Iterator<Observation> observationsIterator() {
-		return observationToIndex.keySet().iterator();
 	}
 	
 	/**
@@ -214,10 +202,6 @@ public class Dictionary {
 	 */
 	public boolean containObservation(Observation observation) {
 		return observationToIndex.containsKey(observation);
-	}
-	
-	public boolean containObservation(int index) {
-		return indexToObservation.containsKey(index);
 	}
 
 	@Override

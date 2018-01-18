@@ -39,8 +39,8 @@ public class BinaryDataReader implements DataReader {
 	}
 
 	@Override
-	public long readCount() throws IOException {
-		return dis.readLong();
+	public int readCount() throws IOException {
+		return dis.readInt();
 	}
 
 	@Override

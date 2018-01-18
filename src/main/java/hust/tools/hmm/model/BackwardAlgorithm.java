@@ -73,7 +73,7 @@ public class BackwardAlgorithm {
 		int o = model.getObservationIndex(observations.get(t + 1));
 
 		for(int j = 0; j < model.statesCount(); j++)
-			sum += Math.pow(10, model.transitionProb(i, j) + model.emissionProb(j, o) + beta[t + 1][j]);
+			sum += Math.pow(10, model.transitionLogProb(i, j) + model.emissionLogProb(j, o) + beta[t + 1][j]);
 
 		beta[t][i] = Math.log10(sum);
 	}
@@ -85,7 +85,7 @@ public class BackwardAlgorithm {
 	 */
 	private void computeObservationProb(int index) {
 		for(int i = 0; i < model.statesCount(); i++)
-			prob += Math.pow(10, model.getPi(i) + model.emissionProb(i, index) + beta[0][i]);
+			prob += Math.pow(10, model.getLogPi(i) + model.emissionLogProb(i, index) + beta[0][i]);
 	}
 	
 	/**

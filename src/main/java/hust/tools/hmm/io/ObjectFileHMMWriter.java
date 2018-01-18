@@ -38,7 +38,7 @@ public class ObjectFileHMMWriter extends AbstractHMMWriter {
 	}
 
 	@Override
-	public void writeCount(long count) throws IOException {
+	public void writeCount(int count) throws IOException {
 		dos.writeLong(count);
 	}
 

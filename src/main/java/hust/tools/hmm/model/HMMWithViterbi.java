@@ -44,10 +44,10 @@ public class HMMWithViterbi implements HMM {
 
 	@Override
 	public double getProb(ObservationSequence observations, StateSequence states, int order) {
-		double logProb = model.getPi(states.get(0)) + model.emissionProb(states.get(0), observations.get(0));
+		double logProb = model.getLogPi(states.get(0)) + model.emissionLogProb(states.get(0), observations.get(0));
 		for(int i = 1; i < states.length(); i++) 
-			logProb += model.transitionProb(new StateSequence(states.get(i - 1)), states.get(i)) +
-					model.emissionProb(states.get(i), observations.get(i));
+			logProb += model.transitionLogProb(new StateSequence(states.get(i - 1)), states.get(i)) +
+					model.emissionLogProb(states.get(i), observations.get(i));
 		
 		return Math.pow(10, logProb);
 	}
@@ -93,7 +93,7 @@ public class HMMWithViterbi implements HMM {
 		//Viterbi解码
 		//初始化参数
 		for(int i = 0; i < stateTypesCount; i++) {
-			delta[0][i] = model.getPi(i) + model.emissionProb(i, observationSequenceIndex[0]);
+			delta[0][i] = model.getLogPi(i) + model.emissionLogProb(i, observationSequenceIndex[0]);
 			psi[0][i] = 0;
 		}
 		
@@ -129,7 +129,7 @@ public class HMMWithViterbi implements HMM {
 		int max_psi = 0;//最短路径
 		
 		for(int i = 0; i < model.statesCount(); i++) {
-			double currentDelta = delta[t - 1][i] + model.transitionProb(i, j);
+			double currentDelta = delta[t - 1][i] + model.transitionLogProb(i, j);
 			
 			if(maxDelta < currentDelta) {
 				maxDelta = currentDelta;
@@ -137,7 +137,7 @@ public class HMMWithViterbi implements HMM {
 			}
 		}
 		
-		delta[t][j] = maxDelta + model.emissionProb(j, observation);
+		delta[t][j] = maxDelta + model.emissionLogProb(j, observation);
 		psi[t][j] = max_psi;
 	}
 

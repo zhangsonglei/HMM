@@ -8,7 +8,6 @@ import java.util.Set;
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMModel;
-import hust.tools.hmm.model.HMModelBasedBO;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
 import hust.tools.hmm.utils.Dictionary;
@@ -71,15 +70,7 @@ public abstract class AbstractSupervisedHMMTrainer implements HMMTrainer {
 	}
 	
 	@Override
-	public HMModel train() {
-		calcPi(counter);
-		calcTransitionMatrix(counter);
-		calcEmissionMatrix(counter);
-		
-		HMModel model = new HMModelBasedBO(order, counter.getDictionary(), pi, transitionMatrix, emissionMatrix);
-		
-		return model;
-	}
+	public abstract HMModel train();
 	
 	/**
 	 * 计算初始概率矩阵
@@ -133,9 +124,18 @@ public abstract class AbstractSupervisedHMMTrainer implements HMMTrainer {
      * @param counter	计数器
      * @return			最大似然概率
      */
-	protected double calcTransitionMLProbability(StateSequence start, State target, TransitionAndEmissionCounter counter) {
-		long totalCount = counter.getSequenceCount(start);
+	protected double calcTransitionMLProbability(StateSequence sequence, TransitionAndEmissionCounter counter) {
+		int nCount = counter.getSequenceCount(sequence);
+		int n_Count = 0;
+		if(sequence.length() == 1)
+			n_Count = counter.getTotalStatesCount();
+		else {//保证归一化
+			StateSequence n_States = sequence.remove(sequence.length() - 1);
+			Set<State> suffixs = counter.getSuffixs(n_States);
+			for(State suffix : suffixs)
+				n_Count += counter.getSequenceCount(n_States.add(suffix));
+		}
 		
-		return (0 == totalCount || 0 == start.length() || start == null) ? 0 : (1.0 * counter.getTransitionCount(start, target) / totalCount);
+		return (0 == n_Count || 0 == sequence.length()) ? 0 : 1.0 * nCount / n_Count;
 	}
 }
