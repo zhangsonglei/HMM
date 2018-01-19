@@ -45,6 +45,8 @@ public class TransitionAndEmissionCounter {
 	 */
 	private HashMap<State, EmissionCountEntry> emissionCountMap;
 	
+	private HashMap<Observation, EmissionCounter> reverseEmissionCountMap;
+	
 	/**
 	 * 出现在样本开始位置的隐藏状态计数，用于计算初始转移概率
 	 */
@@ -103,6 +105,20 @@ public class TransitionAndEmissionCounter {
 			update(sample);
 	}
 	
+	/**
+	 * 初始化数据
+	 */
+	private void init() {
+		dict = new Dictionary();
+		transitionCountMap = new HashMap<>();
+		stateSuffix = new HashMap<>();
+		emissionCountMap = new HashMap<>();
+		reverseEmissionCountMap = new HashMap<>();
+		startStateCount = new HashMap<>();
+		totalStartStateCount = 0;
+		totalStatesCount = 0;
+	}
+	
 	public void update(SupervisedHMMSample sample) {
 		StateSequence stateSequence = sample.getStateSequence();
 		ObservationSequence observationSequence = sample.getObservationSequence();
@@ -131,18 +147,9 @@ public class TransitionAndEmissionCounter {
 			add(state, observation);
 		}		
 	}
-	
-	/**
-	 * 初始化数据
-	 */
-	private void init() {
-		dict = new Dictionary();
-		transitionCountMap = new HashMap<>();
-		stateSuffix = new HashMap<>();
-		emissionCountMap = new HashMap<>();
-		startStateCount = new HashMap<>();
-		totalStartStateCount = 0;
-		totalStatesCount = 0;
+
+	public HashMap<StateSequence, Integer> getTransitionCount() {
+		return transitionCountMap;
 	}
 	
 	/**
@@ -196,6 +203,16 @@ public class TransitionAndEmissionCounter {
 		
 		entry.add(observation);
 		emissionCountMap.put(state, entry);
+		
+		//反向发射
+		EmissionCounter revEntry = null;
+		if(reverseEmissionCountMap.containsKey(observation)) 
+			revEntry = reverseEmissionCountMap.get(observation);
+		else 
+			revEntry = new EmissionCounter();
+		
+		revEntry.add(state);
+		reverseEmissionCountMap.put(observation, revEntry);
 	}
 	
 	/**
@@ -251,6 +268,9 @@ public class TransitionAndEmissionCounter {
 	public int getStateCount(State state) {
 		return emissionCountMap.get(state).getTotal();
 	}
+	public int getObservationCount(Observation observation) {
+		return reverseEmissionCountMap.get(observation).getTotal();
+	}
 
 	/**
 	 * 返回状态为state，观测为observation的发射的数量
@@ -260,6 +280,12 @@ public class TransitionAndEmissionCounter {
 	 */
 	public int getEmissionCount(State state, Observation observation) {
 		if(contain(state, observation))
+			return emissionCountMap.get(state).getObservationCount(observation);
+		
+		return 0;
+	}
+	public int getRevEmissionCount(Observation observation, State state) {
+		if(contain(observation, state))
 			return emissionCountMap.get(state).getObservationCount(observation);
 		
 		return 0;
@@ -308,6 +334,9 @@ public class TransitionAndEmissionCounter {
 	public Iterator<State> emissionIterator() {
 		return emissionCountMap.keySet().iterator();
 	}
+	public Iterator<Observation> revEmissionIterator() {
+		return reverseEmissionCountMap.keySet().iterator();
+	}
 	
 	/**
 	 * 返回给定状态的发射目标观测状态的迭代器
@@ -316,6 +345,9 @@ public class TransitionAndEmissionCounter {
 	 */
 	public Iterator<Observation> iterator(State state) {
 		return emissionCountMap.get(state).observationsIterator();
+	}
+	public Iterator<State> iterator(Observation observation) {
+		return reverseEmissionCountMap.get(observation).observationsIterator();
 	}
 	
 	/**
@@ -336,6 +368,14 @@ public class TransitionAndEmissionCounter {
 	private boolean contain(State state, Observation observation) {
 		if(contain(state))
 			return emissionCountMap.get(state).contain(observation);
+		
+		return false;
+	}
+	
+	private boolean contain(Observation observation, State state) {
+		if(reverseEmissionCountMap.containsKey(observation))
+			if(reverseEmissionCountMap.get(observation).contain(state))
+				return true;
 		
 		return false;
 	}

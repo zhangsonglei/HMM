@@ -125,6 +125,9 @@ public abstract class AbstractSupervisedHMMTrainer implements HMMTrainer {
      * @return			最大似然概率
      */
 	protected double calcTransitionMLProbability(StateSequence sequence, TransitionAndEmissionCounter counter) {
+		if(sequence.length() == 0)
+			throw new IllegalArgumentException("隐藏状态序列不能为空");
+		
 		int nCount = counter.getSequenceCount(sequence);
 		int n_Count = 0;
 		if(sequence.length() == 1)

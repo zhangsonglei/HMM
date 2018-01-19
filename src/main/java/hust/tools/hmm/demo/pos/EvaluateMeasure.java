@@ -1,5 +1,6 @@
 package hust.tools.hmm.demo.pos;
 
+import java.text.DecimalFormat;
 import java.util.HashSet;
 
 /**
@@ -10,7 +11,9 @@ import java.util.HashSet;
  *<li>Date: 2017年12月20日
  *</ul>
  */
-public class POSBasedWordMeasure {
+public class EvaluateMeasure {
+	
+	private final DecimalFormat df =new java.text.DecimalFormat("#.0000");
 	
 	/**
      * |target| = true positives + false negatives <br>
@@ -34,11 +37,11 @@ public class POSBasedWordMeasure {
     private long truePositiveIV;
     private long truePositiveOOV;
 
-    public POSBasedWordMeasure(HashSet<String> dict) {
+    public EvaluateMeasure(HashSet<String> dict) {
         this.dictionary = dict;
     }
 
-    public POSBasedWordMeasure() {
+    public EvaluateMeasure() {
 
     }
 
@@ -113,7 +116,7 @@ public class POSBasedWordMeasure {
      * @param measure
      *            待合并评价结果
      */
-    public void mergeInto(final POSBasedWordMeasure measure) {
+    public void mergeInto(final EvaluateMeasure measure) {
         this.target += measure.target;
         this.truePositive += measure.truePositive;
 
@@ -134,7 +137,7 @@ public class POSBasedWordMeasure {
      */
     @Override
     public String toString() {
-        return "Precision: " + (getPrecisionScore() * 100) + "%\n" + "PIV: " + (getPrecisionScoreIV() * 100) + "%\n" + "POOV: " + (getPrecisionScoreOOV() * 100) + "%\n" + "SentenceAccuray: " + (getSentenceAccuracy() * 100) + "%";
+        return "Precision:\t" + df.format(getPrecisionScore() * 100) + "%\n" + "PIV:\t\t" + df.format(getPrecisionScoreIV() * 100) + "%\n" + "POOV:\t\t" + df.format(getPrecisionScoreOOV() * 100) + "%\n" + "SenAccuray:\t" + df.format(getSentenceAccuracy() * 100) + "%";
     }
 
     private int countTruePositivesWithDictionary(final String[] words, final String[] references, final String[] predictions) {

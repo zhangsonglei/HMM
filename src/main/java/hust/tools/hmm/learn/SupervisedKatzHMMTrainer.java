@@ -16,52 +16,33 @@ import hust.tools.hmm.utils.StateSequence;
 
 /**
  *<ul>
- *<li>Description: 基于加法平滑的监督学习模型训练类器
+ *<li>Description: 基于Katz回退的监督学习模型训练类器
  *<li>Company: HUST
  *<li>@author Sonly
  *<li>Date: 2018年1月10日
  *</ul>
  */
-public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
-
-	/**
-	 * 默认加0.01平滑
-	 */
-	private final double DEFAULT_DELTA = 0.01;
+public class SupervisedKatzHMMTrainer extends AbstractSupervisedHMMTrainer {
 	
 	/**
-	 * 加法平滑中加数大小
+	 * 对初始转移向量和发射概率进行加delta平滑
 	 */
-	private double delta;
+	private final double delta = 0.01;
 	
-	public SupervisedAdditionHMMTrainer(TransitionAndEmissionCounter counter) {
+	public SupervisedKatzHMMTrainer(TransitionAndEmissionCounter counter) {
 		super(counter);
-		this.delta = DEFAULT_DELTA;
 	}
 	
-	public SupervisedAdditionHMMTrainer(TransitionAndEmissionCounter counter, double delta) {
+	public SupervisedKatzHMMTrainer(TransitionAndEmissionCounter counter, double delta) {
 		super(counter);
-		this.delta = delta <= 0 ? DEFAULT_DELTA : delta;
 	}
 	
-	public SupervisedAdditionHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
+	public SupervisedKatzHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
 		super(sampleStream, order);
-		this.delta = DEFAULT_DELTA;
 	}
 	
-	public SupervisedAdditionHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order, double delta) throws IOException {
-		super(sampleStream, order);
-		this.delta = delta <= 0 ? DEFAULT_DELTA : delta;
-	}
-	
-	public SupervisedAdditionHMMTrainer(List<SupervisedHMMSample> samples, int order) throws IOException {
+	public SupervisedKatzHMMTrainer(List<SupervisedHMMSample> samples, int order) throws IOException {
 		super(samples, order);
-		this.delta = DEFAULT_DELTA;
-	}
-	
-	public SupervisedAdditionHMMTrainer(List<SupervisedHMMSample> samples, int order, double delta) throws IOException {
-		super(samples, order);
-		this.delta = delta <= 0 ? DEFAULT_DELTA : delta;
 	}
 	
 	@Override
@@ -94,24 +75,17 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 	
 	@Override
 	protected void calcTransitionMatrix(TransitionAndEmissionCounter counter) {
+		GoodTuringCounts goodTuringCounts = new GoodTuringCounts(counter.getTransitionCount(), order + 1);
+		
 		Iterator<StateSequence> iterator = counter.transitionIterator();
-		while(iterator.hasNext()) {//遍历所有转移状态,计算转移概率
+		while(iterator.hasNext()) {
 			StateSequence sequence = iterator.next();
+			if(sequence.length() > 2 && counter.getSequenceCount(sequence) < 2)//高阶(n > 2)n元组计数小于2 的忽略
+				continue;
 			
-			int nCount = counter.getSequenceCount(sequence);
-			int n_Count = 0;
-			if(sequence.length() == 1)
-				n_Count = counter.getTotalStatesCount();
-			else {//保证归一化
-				StateSequence n_States = sequence.remove(sequence.length() - 1);
-				
-				Set<State> suffixs = counter.getSuffixs(n_States);
-				for(State suffix : suffixs) 
-					n_Count += counter.getSequenceCount(n_States.add(suffix));
-			}
-			
-			double prob = (nCount + delta)/ (n_Count + delta * counter.getDictionary().stateCount());
-			transitionMatrix.put(sequence, new ARPAEntry(Math.log10(prob), 0));
+			double prob = calcKatzNGramProbability(goodTuringCounts, sequence);
+			ARPAEntry entry = new ARPAEntry(Math.log10(prob), 0.0);
+			transitionMatrix.put(sequence, entry);
 		}
 
 		Set<StateSequence> keySet = transitionMatrix.keySet();
@@ -125,6 +99,23 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 				}
 			}//end if
 		}
+	}
+	
+	/**
+	 * 使用Good Turing平滑算法计算给定ngram在词汇表中的概率
+	 * @param nGram					待计算概率的n元
+	 * @param nGramCount			n元的计数
+	 * @return						Good Turing平滑概率			
+	 */
+	private double calcKatzNGramProbability(GoodTuringCounts goodTuringCounts, StateSequence sequence) {
+		int order = sequence.length();
+		if(order > 0) {
+			int count = counter.getSequenceCount(sequence);
+			double prob = goodTuringCounts.getDiscountCoeff(count, order) * calcTransitionMLProbability(sequence, counter);
+		
+			return prob;
+		}else
+			throw new IllegalArgumentException("n元组不合法：" + sequence);
 	}
 	
 	/**

@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
+import hust.tools.hmm.model.HMModel;
 import hust.tools.hmm.model.HMModelBasedBO;
 import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
@@ -45,7 +46,7 @@ public abstract class AbstractHMMReader {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public HMModelBasedBO readModel() throws IOException, ClassNotFoundException {
+	public HMModel readModel() throws IOException, ClassNotFoundException {
 		counts = new int[6];
 		
 		//读取模型各参数的数量

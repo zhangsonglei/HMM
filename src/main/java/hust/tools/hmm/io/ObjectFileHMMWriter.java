@@ -6,7 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import hust.tools.hmm.model.HMModelBasedBO;
+import hust.tools.hmm.model.HMModel;
 
 /**
  *<ul>
@@ -20,19 +20,19 @@ public class ObjectFileHMMWriter extends AbstractHMMWriter {
 	
 	ObjectOutputStream dos;
 	
-	public ObjectFileHMMWriter(HMModelBasedBO model, String pathname) throws FileNotFoundException, IOException {
+	public ObjectFileHMMWriter(HMModel model, String pathname) throws FileNotFoundException, IOException {
 		this(model, new File(pathname));
 	}
 	
-	public ObjectFileHMMWriter(HMModelBasedBO model, File file) throws FileNotFoundException, IOException {
+	public ObjectFileHMMWriter(HMModel model, File file) throws FileNotFoundException, IOException {
 		this(model, new FileOutputStream(file));
 	}
 	
-	public ObjectFileHMMWriter(HMModelBasedBO model, OutputStream os) throws IOException {
+	public ObjectFileHMMWriter(HMModel model, OutputStream os) throws IOException {
 		this(model, new ObjectOutputStream(os));
 	}
 	
-	public ObjectFileHMMWriter(HMModelBasedBO model, ObjectOutputStream dos) {
+	public ObjectFileHMMWriter(HMModel model, ObjectOutputStream dos) {
 		super(model);
 		this.dos = dos;
 	}

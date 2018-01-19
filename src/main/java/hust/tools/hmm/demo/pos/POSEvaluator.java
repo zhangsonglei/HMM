@@ -8,14 +8,14 @@ import hust.tools.hmm.utils.ObservationSequence;
 import hust.tools.hmm.utils.StateSequence;
 
 
-public class POSEval {
+public class POSEvaluator {
 
 	private HMM model;
 	private List<SupervisedHMMSample> samples;
 	private HashSet<String> dict;
 	private int order;
 		
-	public POSEval(HMM model, HashSet<String> dict, List<SupervisedHMMSample> samples, int order) {
+	public POSEvaluator(HMM model, HashSet<String> dict, List<SupervisedHMMSample> samples, int order) {
 		this.model = model;
 		this.dict = dict;
 		this.samples = samples;
@@ -23,15 +23,13 @@ public class POSEval {
 	}
 	
 	public void eval() {
-		POSBasedWordMeasure measure = new POSBasedWordMeasure(dict);
+		EvaluateMeasure measure = new EvaluateMeasure(dict);
 		
 		for(SupervisedHMMSample sample : samples) {
 			StateSequence refStateSeuence = sample.getStateSequence();
-//			System.out.println(refStateSeuence);
-			
 			ObservationSequence wordSequence = sample.getObservationSequence();
+			
 			StateSequence preStateSeuence = model.bestStateSeqence(wordSequence, order);
-//			System.out.println(preStateSeuence);
 			String[] words = new String[wordSequence.length()];
 			String[] refPOS = new String[refStateSeuence.length()];
 			String[] prePOS = new String[refStateSeuence.length()];

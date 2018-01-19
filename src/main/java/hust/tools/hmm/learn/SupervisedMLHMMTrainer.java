@@ -98,7 +98,6 @@ public class SupervisedMLHMMTrainer extends AbstractSupervisedHMMTrainer {
 				double prob = 1.0 * C / M;
 				emissionProbEntry.put(observation, Math.log10(prob));
 			}
-			emissionProbEntry.put(UNKNOWN, Math.log10(0.0001 / M));
 			emissionMatrix.put(state, emissionProbEntry);
 		}//end while
 	}

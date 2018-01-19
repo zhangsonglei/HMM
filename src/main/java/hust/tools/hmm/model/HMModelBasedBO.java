@@ -85,7 +85,7 @@ public class HMModelBasedBO implements HMModel {
 	private double oovTransitionProb(StateSequence oov) {
 		StateSequence n_States = oov.remove(oov.length() - 1);
 		StateSequence _States = oov.remove(0);
-		
+
 		if(transitionMatrix.containsKey(n_States))
 			return transitionMatrix.get(n_States).getLog_bo() + transitionLogProb(_States);
 		else

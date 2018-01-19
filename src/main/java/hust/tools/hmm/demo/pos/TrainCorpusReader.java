@@ -12,7 +12,7 @@ import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.utils.StringObservation;
 import hust.tools.hmm.utils.StringState;
 
-public class POSTrainCorpusReader {
+public class TrainCorpusReader {
 
 	public static List<SupervisedHMMSample> read(File file) throws IOException {
 		List<SupervisedHMMSample> samples = new ArrayList<>();

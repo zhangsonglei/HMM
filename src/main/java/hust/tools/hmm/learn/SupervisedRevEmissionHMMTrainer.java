@@ -22,46 +22,23 @@ import hust.tools.hmm.utils.StateSequence;
  *<li>Date: 2018年1月10日
  *</ul>
  */
-public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
+public class SupervisedRevEmissionHMMTrainer extends AbstractSupervisedHMMTrainer {
 
 	/**
-	 * 默认加0.01平滑
+	 * 对初始转移向量和发射概率进行加delta平滑
 	 */
-	private final double DEFAULT_DELTA = 0.01;
+	private final double delta = 0.01;
 	
-	/**
-	 * 加法平滑中加数大小
-	 */
-	private double delta;
-	
-	public SupervisedAdditionHMMTrainer(TransitionAndEmissionCounter counter) {
+	public SupervisedRevEmissionHMMTrainer(TransitionAndEmissionCounter counter) {
 		super(counter);
-		this.delta = DEFAULT_DELTA;
 	}
 	
-	public SupervisedAdditionHMMTrainer(TransitionAndEmissionCounter counter, double delta) {
-		super(counter);
-		this.delta = delta <= 0 ? DEFAULT_DELTA : delta;
-	}
-	
-	public SupervisedAdditionHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
+	public SupervisedRevEmissionHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
 		super(sampleStream, order);
-		this.delta = DEFAULT_DELTA;
 	}
 	
-	public SupervisedAdditionHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order, double delta) throws IOException {
-		super(sampleStream, order);
-		this.delta = delta <= 0 ? DEFAULT_DELTA : delta;
-	}
-	
-	public SupervisedAdditionHMMTrainer(List<SupervisedHMMSample> samples, int order) throws IOException {
+	public SupervisedRevEmissionHMMTrainer(List<SupervisedHMMSample> samples, int order) throws IOException {
 		super(samples, order);
-		this.delta = DEFAULT_DELTA;
-	}
-	
-	public SupervisedAdditionHMMTrainer(List<SupervisedHMMSample> samples, int order, double delta) throws IOException {
-		super(samples, order);
-		this.delta = delta <= 0 ? DEFAULT_DELTA : delta;
 	}
 	
 	@Override
@@ -132,24 +109,42 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 	 * @param counter	转移发射计数器
 	 */	
 	protected void calcEmissionMatrix(TransitionAndEmissionCounter counter) {
-		Iterator<State> iterator = counter.emissionIterator();
-		int N = counter.getDictionary().observationCount();//观测状态的类型数
+		Iterator<Observation> iterator = counter.revEmissionIterator();
 		
 		while(iterator.hasNext()) {//遍历所有发射
-			State state = iterator.next();
-			Iterator<Observation> observationsIterator = counter.iterator(state);
-			int M = counter.getStateCount(state);//以state为发射起点的总数量
+			Observation observation = iterator.next();
+			Iterator<State> statesIterator = counter.iterator(observation);
 			
-			EmissionProbEntry emissionProbEntry = new EmissionProbEntry();
-			while(observationsIterator.hasNext()) {//计算当前状态的所有发射概率
-				Observation observation = observationsIterator.next();
-				int C = counter.getEmissionCount(state, observation);//当前发射的数量
-				double prob = (C + delta) / (M + N * delta);
-				emissionProbEntry.put(observation, Math.log10(prob));
+			int M = counter.getObservationCount(observation);//以state为发射起点的总数量
+			while(statesIterator.hasNext()) {//计算当前状态的所有发射概率
+				State state = statesIterator.next();
+				int C = counter.getRevEmissionCount(observation, state);//当前发射的数量
+				double prob = 1.0 * C / M;
+				putEmissionProb(state, observation, prob);
 			}
-
-			emissionProbEntry.put(UNKNOWN, Math.log10(delta / (M + N * delta)));
-			emissionMatrix.put(state, emissionProbEntry);
 		}//end while
+		
+		Set<State> set = counter.getDictionary().getStates();
+		for(State state : set) {
+			double prob = 10.0 / counter.getTotalStatesCount();
+			putEmissionProb(state, UNKNOWN, prob);
+		}
+	}
+	
+	/**
+	 * 
+	 * @param state
+	 * @param observation
+	 * @param prob
+	 */
+	private void putEmissionProb(State state, Observation observation, double prob) {
+		EmissionProbEntry entry = null;
+		if(emissionMatrix.containsKey(state)) 
+			entry = emissionMatrix.get(state);
+		else 
+			entry = new EmissionProbEntry();
+		
+		entry.put(observation, Math.log10(prob));
+		emissionMatrix.put(state, entry);
 	}
 }
