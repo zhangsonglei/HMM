@@ -13,7 +13,7 @@ import hust.tools.hmm.io.TextFileHMMWriter;
 import hust.tools.hmm.learn.AbstractSupervisedHMMTrainer;
 import hust.tools.hmm.learn.SupervisedAdditionHMMTrainer;
 import hust.tools.hmm.learn.SupervisedKatzHMMTrainer;
-import hust.tools.hmm.learn.SupervisedMLHMMTrainer;
+import hust.tools.hmm.learn.SupervisedEmissionOnlyHMMTrainer;
 import hust.tools.hmm.learn.SupervisedRevEmissionHMMTrainer;
 import hust.tools.hmm.learn.SupervisedWithoutBOHMMTrainer;
 import hust.tools.hmm.learn.SupervisedWittenBellHMMTrainer;
@@ -86,8 +86,8 @@ public class TrainAndEvaluate {
 		case "WB":
 			learner = new SupervisedWittenBellHMMTrainer(counter);
 			break;
-		case "ML":
-			learner = new SupervisedMLHMMTrainer(counter);
+		case "EO":
+			learner = new SupervisedEmissionOnlyHMMTrainer(counter);
 			break;
 		case "RE":
 			learner = new SupervisedRevEmissionHMMTrainer(counter);

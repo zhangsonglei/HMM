@@ -24,7 +24,6 @@ public class POSEvaluator {
 	
 	public void eval() {
 		EvaluateMeasure measure = new EvaluateMeasure(dict);
-		
 		for(SupervisedHMMSample sample : samples) {
 			StateSequence refStateSeuence = sample.getStateSequence();
 			ObservationSequence wordSequence = sample.getObservationSequence();

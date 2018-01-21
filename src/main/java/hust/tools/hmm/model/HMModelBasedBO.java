@@ -83,6 +83,9 @@ public class HMModelBasedBO implements HMModel {
 	 * @return		不存在的转移概率
 	 */
 	private double oovTransitionProb(StateSequence oov) {
+		if(oov.length() == 1)
+			return 0;
+		
 		StateSequence n_States = oov.remove(oov.length() - 1);
 		StateSequence _States = oov.remove(0);
 
