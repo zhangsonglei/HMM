@@ -94,16 +94,20 @@ public class ForwardAlgorithm {
 		return prob;
 	}
 
-//	/**
-//	 * 返回t时刻i状态的前向概率
-//	 * @param t	观测序列的时刻
-//	 * @param i	隐藏状态的索引
-//	 * @return	前向概率
-//	 */
-//	public double getAlpha(int t, int i) {
-//		if(alpha == null)
-//			throw new UnsupportedOperationException("前向概率未计算。");
-//		
-//		return alpha[t][i];
-//	}
+	/**
+	 * 返回t时刻i状态的前向概率
+	 * @param t	观测序列的时刻
+	 * @param i	隐藏状态的索引
+	 * @return	前向概率
+	 */
+	public double getAlpha(int t, int i) {
+		if(alpha == null)
+			throw new UnsupportedOperationException("前向概率未计算。");
+		
+		return alpha[t][i];
+	}
+	
+	public double[][] getAlpha() {
+		return alpha;
+	}
 }

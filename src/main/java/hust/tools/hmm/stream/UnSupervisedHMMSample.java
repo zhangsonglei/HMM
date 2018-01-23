@@ -10,13 +10,13 @@ import hust.tools.hmm.utils.ObservationSequence;
  *<li>Date: 2018年1月1日
  *</ul>
  */
-public class SemiSupervisedHMMSample extends AbstractHMMSample {
+public class UnSupervisedHMMSample extends AbstractHMMSample {
 	
-	public SemiSupervisedHMMSample() {
+	public UnSupervisedHMMSample() {
 
 	}
 
-	public SemiSupervisedHMMSample(ObservationSequence observationSequence) {
+	public UnSupervisedHMMSample(ObservationSequence observationSequence) {
 		super(observationSequence);
 	}
 	

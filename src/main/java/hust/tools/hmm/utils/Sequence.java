@@ -18,6 +18,8 @@ public interface Sequence<T> extends Serializable {
     
     public Sequence<T> add(T[] tokens);
     
+    public Sequence<T> add(Sequence<T> sequence);
+    
     public Sequence<T> set(T token, int index);
     
     public Sequence<T> remove(int index);

@@ -101,7 +101,7 @@ public class HMMWithViterbiTest {
 				3.0 / (14*11*16), 
 				5.0 / (14*14*6*4), 
 				15.0 / (7*11*16*8), 
-				5.0 / (7*7*18*18*3),};
+				5.0 / (7*7*18*18*3)};
 		
 		double totalProb = 0;
 		for(double prob : probs)

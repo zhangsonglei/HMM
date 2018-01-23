@@ -41,7 +41,7 @@ public class TransitionAndEmissionCounter {
 	private HashMap<StateSequence, Set<State>> stateSuffix;
 	
 	/**
-	 * 状态、转移的计数
+	 * 状态、发射的计数
 	 */
 	private HashMap<State, EmissionCountEntry> emissionCountMap;
 	

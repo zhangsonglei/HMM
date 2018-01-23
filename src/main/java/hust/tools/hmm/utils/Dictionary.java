@@ -35,7 +35,7 @@ public class Dictionary {
 	 * @param state	增加的隐藏状态
 	 * @return		加上索引的隐藏状态
 	 */
-	private void add(State state) {
+	public void add(State state) {
 		if(!containState(state)) {
 			stateToIndex.put(state, state_index);
 			indexToState.put(state_index, state);
@@ -79,7 +79,7 @@ public class Dictionary {
 	 * @param state	增加的观测状态
 	 * @return		加上索引的观测状态序列
 	 */
-	private void add(Observation observation) {
+	public void add(Observation observation) {
 		if(!containObservation(observation)) {
 			observationToIndex.put(observation, observation_index);
 			indexToObservation.put(observation_index, observation);

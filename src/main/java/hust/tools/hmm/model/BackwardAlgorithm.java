@@ -96,16 +96,20 @@ public class BackwardAlgorithm {
 		return prob;
 	}
 
-//	/**
-//	 * 返回t时刻i状态的后向概率
-//	 * @param t	观测序列的时刻
-//	 * @param i	隐藏状态的索引
-//	 * @return	后向概率
-//	 */
-//	public double getBeta(int t, int i) {
-//		if(beta == null)
-//			throw new UnsupportedOperationException("后向概率未计算。");
-//		
-//		return beta[t][i];
-//	}
+	/**
+	 * 返回t时刻i状态的后向概率
+	 * @param t	观测序列的时刻
+	 * @param i	隐藏状态的索引
+	 * @return	后向概率
+	 */
+	public double getBeta(int t, int i) {
+		if(beta == null)
+			throw new UnsupportedOperationException("后向概率未计算。");
+		
+		return beta[t][i];
+	}
+	
+	public double[][] getBeta() {
+		return beta;
+	}
 }

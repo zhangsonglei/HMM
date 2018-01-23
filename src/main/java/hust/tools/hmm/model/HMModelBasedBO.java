@@ -20,6 +20,11 @@ import hust.tools.hmm.utils.State;
  */
 public class HMModelBasedBO implements HMModel {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4845677181963311625L;
+
 	private final Observation UNKNOWN = new StringObservation("UNKNOWN");
 	
 	private int order;
@@ -170,6 +175,18 @@ public class HMModelBasedBO implements HMModel {
 	@Override
 	public int statesCount() {
 		return dict.stateCount();
+	}
+
+	@Override
+	public int observationsCount() {
+		return dict.observationCount();
+	}
+
+	@Override
+	public HMModel clone() throws CloneNotSupportedException{
+		
+		return null;
+		
 	}
 
 	@Override

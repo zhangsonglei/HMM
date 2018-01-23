@@ -130,7 +130,7 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 	/**
 	 * 采用加1平滑方式计算发射概率矩阵:p=(C+1)/(M+N)（已确保概率之和为1，不需要归一化）
 	 * @param counter	转移发射计数器
-	 */	
+	 */
 	protected void calcEmissionMatrix(TransitionAndEmissionCounter counter) {
 		Iterator<State> iterator = counter.emissionIterator();
 		int N = counter.getDictionary().observationCount();//观测状态的类型数

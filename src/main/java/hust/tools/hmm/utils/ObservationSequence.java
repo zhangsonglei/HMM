@@ -69,6 +69,13 @@ public class ObservationSequence implements Sequence<Observation> {
 		
 		return new ObservationSequence(arr);
 	}
+	
+	@Override
+	public ObservationSequence add(Sequence<Observation> sequence) {
+		Observation[] observations = sequence.toArray(); 
+		
+		return add(observations);
+	}
 
 	@Override
 	public ObservationSequence remove(int index) {

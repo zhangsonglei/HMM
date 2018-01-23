@@ -1,5 +1,6 @@
 package hust.tools.hmm.model;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
 import hust.tools.hmm.utils.Dictionary;
@@ -15,7 +16,7 @@ import hust.tools.hmm.utils.StateSequence;
  *<li>Date: 2018年1月15日
  *</ul>
  */
-public interface HMModel {
+public interface HMModel extends Serializable, Cloneable {
 	
 	/**
 	 * 返回给定隐藏状态的初始转移概率的对数
@@ -87,6 +88,8 @@ public interface HMModel {
 	 * @return	隐藏状态类型数量
 	 */
 	public int statesCount();
+	
+	public int observationsCount();
 
 	/**
 	 * 返回观测状态的索引
@@ -124,4 +127,6 @@ public interface HMModel {
 	 * @return	发射概率矩阵
 	 */
 	public HashMap<State, EmissionProbEntry> getEmissionMatrix();
+	
+	public HMModel clone() throws CloneNotSupportedException;
 }

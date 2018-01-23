@@ -69,6 +69,13 @@ public class StateSequence implements Sequence<State> {
 		
 		return new StateSequence(arr);
 	}
+	
+	@Override
+	public StateSequence add(Sequence<State> sequence) {
+		State[] states = sequence.toArray();
+		
+		return add(states);
+	}
 
 	@Override
 	public StateSequence remove(int index) {

@@ -10,7 +10,7 @@ import hust.tools.hmm.io.AbstractHMMReader;
 import hust.tools.hmm.io.HMMWriter;
 import hust.tools.hmm.io.TextFileHMMReader;
 import hust.tools.hmm.io.TextFileHMMWriter;
-import hust.tools.hmm.learn.AbstractSupervisedHMMTrainer;
+import hust.tools.hmm.learn.HMMTrainer;
 import hust.tools.hmm.learn.SupervisedAdditionHMMTrainer;
 import hust.tools.hmm.learn.SupervisedKatzHMMTrainer;
 import hust.tools.hmm.learn.SupervisedEmissionOnlyHMMTrainer;
@@ -78,7 +78,7 @@ public class TrainAndEvaluate {
 	public HMModel train(List<SupervisedHMMSample> trainsamples) throws IOException {
 		TransitionAndEmissionCounter counter = new TransitionAndEmissionCounter(trainsamples, order);
 		
-		AbstractSupervisedHMMTrainer learner = null;
+		HMMTrainer learner = null;
 		switch (smooth.toUpperCase()) {
 		case "ADD":
 			learner = new SupervisedAdditionHMMTrainer(counter);
