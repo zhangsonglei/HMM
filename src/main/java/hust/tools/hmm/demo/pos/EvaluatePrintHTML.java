@@ -25,7 +25,6 @@ public class EvaluatePrintHTML {
 	private int order;
 	private HashMap<String, Integer> tagCount;
 	
-	
 	public EvaluatePrintHTML(HMM model, List<SupervisedHMMSample> samples, int order) {
 		this.model = model;
 		this.samples = samples;

@@ -7,7 +7,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
 import hust.tools.hmm.utils.StateSequence;
@@ -72,15 +71,13 @@ public class BinaryDataReader implements DataReader {
 		String line = dis.readUTF();
 		String[] items = line.split("\t");
 		
-		String[] stateArray = items[0].split(" ");
-		State[] states = new StringState[stateArray.length];
-		for(int i = 0; i < states.length; i++)
-			states[i] = new StringState(stateArray[i]);
-					
-		String[] arpa = items[1].split(" ");
-		ARPAEntry entry = new ARPAEntry(Double.parseDouble(arpa[0]), Double.parseDouble(arpa[1]));
 		
-		return new TransitionEntry(new StateSequence(states), entry);
+		String[] states = items[0].split(" ");
+		State[] start = new StringState[states.length];
+		for(int i = 0; i < states.length; i++)
+			start[i] = new StringState(states[i]);
+				
+		return new TransitionEntry(new StateSequence(start), new StringState(items[1]), Double.parseDouble(items[3]));
 	}
 
 	@Override

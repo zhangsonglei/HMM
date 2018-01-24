@@ -3,10 +3,10 @@ package hust.tools.hmm.io;
 import java.io.IOException;
 import java.util.HashMap;
 
-import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMModel;
-import hust.tools.hmm.model.HMModelBasedBO;
+import hust.tools.hmm.model.HMModelBasedMap;
+import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
@@ -28,7 +28,7 @@ public abstract class AbstractHMMReader {
 	
 	private HashMap<State, Double> pi;
 	
-	private HashMap<StateSequence, ARPAEntry> transitionMatrix;
+	private HashMap<StateSequence, TransitionProbEntry> transitionMatrix;
 	
 	private HashMap<State, EmissionProbEntry> emissionMatrix;
 	
@@ -70,7 +70,7 @@ public abstract class AbstractHMMReader {
 		
 		close();
 		
-		return new HMModelBasedBO(order, dict, pi, transitionMatrix, emissionMatrix);
+		return new HMModelBasedMap(order, dict, pi, transitionMatrix, emissionMatrix);
 	}
 	
 	/**
@@ -123,7 +123,17 @@ public abstract class AbstractHMMReader {
 		
 		for(int i = 0; i < count; i++) {
 			TransitionEntry entry = readTransitionMatrix();
-			transitionMatrix.put(entry.getSequence(), entry.getEntry());
+			StateSequence start = entry.getStart();
+			State target = entry.getTarget();
+			
+			TransitionProbEntry transitionProbEntry = null;
+			if(transitionMatrix.containsKey(start))
+				transitionProbEntry = transitionMatrix.get(start);
+			else
+				transitionProbEntry = new TransitionProbEntry();
+			transitionProbEntry.put(target, entry.getLogProb());
+			
+			transitionMatrix.put(start, transitionProbEntry);
 		}
 	}
 	

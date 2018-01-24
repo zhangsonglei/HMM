@@ -6,12 +6,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 
-import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.BackwardAlgorithm;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.ForwardAlgorithm;
 import hust.tools.hmm.model.HMModel;
-import hust.tools.hmm.model.HMModelBasedBO;
+import hust.tools.hmm.model.HMModelBasedMap;
+import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.stream.UnSupervisedHMMSample;
 import hust.tools.hmm.stream.UnSupervisedHMMSampleStream;
 import hust.tools.hmm.utils.Dictionary;
@@ -38,13 +38,27 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 	private final double DELTA = 0.001;
 	
 	private ObservationSequence sequence;
-		
+	
+	/**
+	 * 构造方法
+	 * @param initHMModel	初始模型
+	 * @param order			模型的阶数
+	 * @param sequence		进行评价模型好坏的观测序列
+	 */
 	public UnSupervisedBaumWelchHMMTrainer(HMModel initHMModel, int order, ObservationSequence sequence) {
 		super(initHMModel, order);
 		this.sequence = sequence;
 		this.iteration = DEFAULT_ITERATION;
 	}
 	
+	/**
+	 * 构造方法，随机生成初始模型
+	 * @param sampleStream	训练样本（观测样本）流
+	 * @param states		隐藏状态集
+	 * @param order			模型的阶数
+	 * @param seed			随机种子
+	 * @throws IOException	
+	 */
 	public UnSupervisedBaumWelchHMMTrainer(UnSupervisedHMMSampleStream<?> sampleStream, Collection<State> states, int order, long seed) throws IOException {
 		HashSet<Observation> observationSet = new HashSet<>();
 		sequence = new ObservationSequence();
@@ -63,9 +77,18 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		this.iteration = DEFAULT_ITERATION;
 	}
 	
-	public UnSupervisedBaumWelchHMMTrainer(Collection<Observation> observationSet, Collection<State> states, int order, long seed) {
+	/**
+	 * 构造方法，随机生成初始模型
+	 * @param observationSet	观测状态集
+	 * @param states			隐藏状态集
+	 * @param sequence			进行评价模型好坏的观测序列
+	 * @param order				模型的阶数
+	 * @param seed				随机种子
+	 */
+	public UnSupervisedBaumWelchHMMTrainer(Collection<Observation> observationSet, Collection<State> states, ObservationSequence sequence, int order, long seed) {
 		HMModel initHMModel = initHMModel(states, observationSet, order, seed);
 		this.model = initHMModel;
+		this.sequence = sequence;
 		this.order = order;
 		this.iteration = DEFAULT_ITERATION;
 	}
@@ -86,7 +109,7 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		
 		Dictionary dict = model.getDict();
 		HashMap<State, Double> pi = model.getPi();
-		HashMap<StateSequence, ARPAEntry> matrixA = model.getTransitionMatrix();
+		HashMap<StateSequence, TransitionProbEntry> matrixA = model.getTransitionMatrix();
 		HashMap<State, EmissionProbEntry> matrixB = model.getEmissionMatrix();
 		int N = model.statesCount();
 		int M = model.observationsCount();
@@ -109,16 +132,21 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 				for(int t = 0; t < T - 1; t++)
 					denominatorA += gamma[t][i];
 
+				TransitionProbEntry transitionProbEntry = new TransitionProbEntry();
+				StateSequence start = new StateSequence(new State[]{dict.getState(i)});
 				for(int j = 0; j < N; j++) {
 					double numeratorA = 0.0;
 					for (int t = 0; t < T - 1; t++) 
 						numeratorA += xi[t][i][j];
 					
-					StateSequence sequence = new StateSequence(new State[]{dict.getState(i), dict.getState(j)});
-					matrixA.put(sequence, new ARPAEntry(Math.log10(0.001 + 0.999 * numeratorA / denominatorA), 0));
+					State target = dict.getState(j);
+					transitionProbEntry.put(target, Math.log10(0.001 + 0.999 * numeratorA / denominatorA));
 				}
-
+				matrixA.put(start, transitionProbEntry);
+				
 				double denominatorB = denominatorA + gamma[T][i]; 
+				State state = dict.getState(i);
+				EmissionProbEntry emissionProbEntry = matrixB.get(state);
 				for(int k = 0; k < M; k++) {
 					double numeratorB = 0.0;
 					for (int t = 0; t < T; t++) {
@@ -126,15 +154,13 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 							numeratorB += gamma[t][i];
 					}
 					
-					State state = dict.getState(i);
 					Observation observation = dict.getObservation(k);
-					EmissionProbEntry entry = matrixB.get(state);
-					entry.put(observation, Math.log10(0.001 + 0.999 * numeratorB / denominatorB));
-					matrixB.put(state, entry);
+					emissionProbEntry.put(observation, Math.log10(0.001 + 0.999 * numeratorB / denominatorB));
 				}
+				matrixB.put(state, emissionProbEntry);
 			}
 			
-			model = new HMModelBasedBO(order, dict, pi, matrixA, matrixB);
+			model = new HMModelBasedMap(order, dict, pi, matrixA, matrixB);
 			
 			backward = new BackwardAlgorithm(model, sequence);
 			beta = backward.getBeta();
@@ -146,8 +172,6 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 			xi = calcXi(model, sequence.length(), observationsIndex, alpha, beta);
 			gamma = calcGamma(model, sequence.length(), alpha, beta);
 
-			/* compute difference between log probability of 
-			   two iterations */
 			delta = logProbForward - logProbPre; 
 			logProbPre = logProbForward;
 			currentIterator++;
@@ -199,7 +223,7 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 			double denominator = 0.0;	
 			for (int i = 1; i <= model.statesCount(); i++) {
 				for (int j = 1; j <= model.statesCount(); j++) {
-					xi[t][i][j] = Math.pow(10, alpha[t][i]) * Math.pow(10, beta[t+1][j]) * Math.pow(10, model.transitionLogProb(i, j)) * Math.pow(10, model.emissionLogProb(j, observations[t+1]));
+					xi[t][i][j] = Math.pow(10, alpha[t][i]) * Math.pow(10, beta[t+1][j]) * Math.pow(10, model.transitionLogProb(new int[]{i}, j)) * Math.pow(10, model.emissionLogProb(j, observations[t+1]));
 					denominator += xi[t][i][j];
 				}
 			}
@@ -213,10 +237,18 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		return xi;
 	}
 	
+	/**
+	 * 生成随机模型
+	 * @param states		隐藏状态集
+	 * @param observations	观测状态集
+	 * @param order			模型的阶数
+	 * @param seed			随即种子
+	 * @return				随机模型
+	 */
 	private HMModel initHMModel(Collection<State> states, Collection<Observation> observations, int order, long seed) {
 		Dictionary dict = new Dictionary();
 		HashMap<State, Double> pi = new HashMap<>();
-		HashMap<StateSequence, ARPAEntry> transitionMatrix = new HashMap<>();
+		HashMap<StateSequence, TransitionProbEntry> transitionMatrix = new HashMap<>();
 		HashMap<State, EmissionProbEntry> emissionMatrix = new HashMap<>();
 		
 		for(State state : states)
@@ -246,10 +278,13 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 				sumA += A[i][j];
 			}
 			//转移概率归一化
+			State[] start = new State[]{dict.getState(i)};
+			TransitionProbEntry transitionProbEntry = new TransitionProbEntry();
 			for(int j = 0; j < N; j++) {
-				State[] trans = new State[]{dict.getState(i), dict.getState(j)};
-				transitionMatrix.put(new StateSequence(trans), new ARPAEntry(A[i][j] /= sumA, 0));
+				State target = dict.getState(j);
+				transitionProbEntry.put(target, A[i][j] /= sumA);
 			}
+			transitionMatrix.put(new StateSequence(start), transitionProbEntry);
 			
 			//为发射概率矩阵随机赋值
 			double sumB = 0.0;
@@ -276,6 +311,6 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		for(int i = 0; i < M; i++)
 			pi.put(dict.getState(i), Math.log10(Pi[i] /= sumPi));
 		
-		return new HMModelBasedBO(order, dict, pi, transitionMatrix, emissionMatrix);
+		return new HMModelBasedMap(order, dict, pi, transitionMatrix, emissionMatrix);
 	}
 }

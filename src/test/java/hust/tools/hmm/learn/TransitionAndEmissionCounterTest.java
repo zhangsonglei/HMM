@@ -110,9 +110,9 @@ public class TransitionAndEmissionCounterTest {
 		counter.update(sample);
 		
 		State[] states = new StringState[]{new StringState("8"), new StringState("9"), new StringState("0")};
-		assertEquals(2, counter.getSequenceCount(new StateSequence(states)));
-		assertEquals(1, counter.getSequenceCount(new StateSequence(states23)));
-		assertEquals(3, counter.getSequenceCount(new StateSequence(new StringState("3"))));
+		assertEquals(2, counter.getTransitionStartCount(new StateSequence(states)));
+		assertEquals(1, counter.getTransitionStartCount(new StateSequence(states23)));
+		assertEquals(3, counter.getTransitionStartCount(new StateSequence(new StringState("3"))));
 		
 		
 		State target = new StringState("4");
@@ -136,13 +136,13 @@ public class TransitionAndEmissionCounterTest {
 	@Test
 	public void testGetSequeceCount() {
 		State[] states = new StringState[]{new StringState("8"), new StringState("9"), new StringState("0")};
-		assertEquals(1, counter.getSequenceCount(new StateSequence(states)));
+		assertEquals(1, counter.getTransitionStartCount(new StateSequence(states)));
 		states = new StringState[]{new StringState("7"), new StringState("8"), new StringState("9"), new StringState("0")};
-		assertEquals(1, counter.getSequenceCount(new StateSequence(states)));
+		assertEquals(1, counter.getTransitionStartCount(new StateSequence(states)));
 		
-		assertEquals(1, counter.getSequenceCount(new StateSequence(states23)));
-		assertEquals(0, counter.getSequenceCount(new StateSequence(states36)));
-		assertEquals(2, counter.getSequenceCount(new StateSequence(new StringState("3"))));
+		assertEquals(1, counter.getTransitionStartCount(new StateSequence(states23)));
+		assertEquals(0, counter.getTransitionStartCount(new StateSequence(states36)));
+		assertEquals(2, counter.getTransitionStartCount(new StateSequence(new StringState("3"))));
 	}
 
 	//测试转移计数

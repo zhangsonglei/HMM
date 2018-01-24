@@ -19,7 +19,7 @@ public class POSTagger {
 		samples = TrainCorpusReader.read(file);
 		int order = 1;
 		
-		TrainAndEvaluate trainAndEvaluate = new TrainAndEvaluate(samples, order, "add");
+		TrainAndEvaluate trainAndEvaluate = new TrainAndEvaluate(samples, order, "ml");
 		trainAndEvaluate.crossValidation(order, 10);
 
 //		List<SupervisedHMMSample> trainSamples = new ArrayList<>();

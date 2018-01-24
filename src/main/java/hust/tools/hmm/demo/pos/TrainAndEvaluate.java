@@ -13,9 +13,9 @@ import hust.tools.hmm.io.TextFileHMMWriter;
 import hust.tools.hmm.learn.HMMTrainer;
 import hust.tools.hmm.learn.SupervisedAdditionHMMTrainer;
 import hust.tools.hmm.learn.SupervisedKatzHMMTrainer;
+import hust.tools.hmm.learn.SupervisedMLHMMTrainer;
 import hust.tools.hmm.learn.SupervisedEmissionOnlyHMMTrainer;
 import hust.tools.hmm.learn.SupervisedRevEmissionHMMTrainer;
-import hust.tools.hmm.learn.SupervisedWithoutBOHMMTrainer;
 import hust.tools.hmm.learn.SupervisedWittenBellHMMTrainer;
 import hust.tools.hmm.learn.TransitionAndEmissionCounter;
 import hust.tools.hmm.model.HMM;
@@ -80,6 +80,9 @@ public class TrainAndEvaluate {
 		
 		HMMTrainer learner = null;
 		switch (smooth.toUpperCase()) {
+		case "ML":
+			learner = new SupervisedMLHMMTrainer(counter);
+			break;
 		case "ADD":
 			learner = new SupervisedAdditionHMMTrainer(counter);
 			break;
@@ -94,9 +97,6 @@ public class TrainAndEvaluate {
 			break;
 		case "KATZ":
 			learner = new SupervisedKatzHMMTrainer(counter);
-			break;
-		case "WOBO":
-			learner = new SupervisedWithoutBOHMMTrainer(counter);
 			break;
 		default:
 			throw new IllegalArgumentException("错误的平滑方法：" + smooth);

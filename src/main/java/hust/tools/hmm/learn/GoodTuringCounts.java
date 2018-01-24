@@ -3,10 +3,11 @@ package hust.tools.hmm.learn;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
+import hust.tools.hmm.utils.State;
 import hust.tools.hmm.utils.StateSequence;
 
 /**
@@ -38,7 +39,7 @@ public class GoodTuringCounts {
 	private HashMap<Integer, HashMap<Integer, Double>> countOfCounts;
 	
 	
-	public GoodTuringCounts(HashMap<StateSequence, Integer> nGramCountMap, int n) {
+	public GoodTuringCounts(HashMap<StateSequence, TransitionCountEntry> nGramCountMap, int n) {
 		this.n = n;
 		countOfCounts = new HashMap<>();
 		disCoeffs = new double[n][];
@@ -83,22 +84,27 @@ public class GoodTuringCounts {
 	 * @param nGramCountMap	n元及其计数的索引
 	 * @return				根据n的大小统计出现r次的n元的数量
 	 */
-	private void statisticsNGramCountOfTimesSeen(HashMap<StateSequence, Integer> nGramCountMap) {
-		for(Entry<StateSequence, Integer> entry : nGramCountMap.entrySet()) {
-			StateSequence nGram = entry.getKey();
-			int order = nGram.length();
-			int count = entry.getValue();
+	private void statisticsNGramCountOfTimesSeen(HashMap<StateSequence, TransitionCountEntry> nGramCountMap) {
+		for(Entry<StateSequence, TransitionCountEntry> entry : nGramCountMap.entrySet()) {
+			StateSequence start = entry.getKey();
+			Iterator<Entry<State, Integer>> iterator = entry.getValue().entryIterator();
 			
-			if(countOfCounts.containsKey(count)) {
-				if(countOfCounts.get(count).containsKey(order)) {
-					double Nr = countOfCounts.get(count).get(order);
-					countOfCounts.get(count).put(order, Nr + 1);
-				}else
-					countOfCounts.get(count).put(order, 1.0);
-			}else {
-				HashMap<Integer, Double> map = new HashMap<>();
-				map.put(order, 1.0);
-				countOfCounts.put(count, map);
+			while(iterator.hasNext()) {
+				Entry<State, Integer> target = iterator.next();
+				int order = start.length() + 1;
+				int count = target.getValue();
+				
+				if(countOfCounts.containsKey(count)) {
+					if(countOfCounts.get(count).containsKey(order)) {
+						double Nr = countOfCounts.get(count).get(order);
+						countOfCounts.get(count).put(order, Nr + 1);
+					}else
+						countOfCounts.get(count).put(order, 1.0);
+				}else {
+					HashMap<Integer, Double> map = new HashMap<>();
+					map.put(order, 1.0);
+					countOfCounts.put(count, map);
+				}
 			}
 		}//end for
 		

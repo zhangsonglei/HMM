@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMModel;
-import hust.tools.hmm.model.HMModelBasedBO;
+import hust.tools.hmm.model.HMModelBasedMap;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
 import hust.tools.hmm.utils.Observation;
@@ -44,7 +44,7 @@ public class SupervisedEmissionOnlyHMMTrainer extends AbstractSupervisedHMMTrain
 		calcTransitionMatrix(counter);
 		calcEmissionMatrix(counter);
 		
-		HMModel model = new HMModelBasedBO(order, counter.getDictionary(), pi, transitionMatrix, emissionMatrix);
+		HMModel model = new HMModelBasedMap(order, counter.getDictionary(), pi, transitionMatrix, emissionMatrix);
 		
 		return model;
 	}
@@ -74,7 +74,7 @@ public class SupervisedEmissionOnlyHMMTrainer extends AbstractSupervisedHMMTrain
 		while(iterator.hasNext()) {//遍历所有发射
 			State state = iterator.next();
 			Iterator<Observation> observationsIterator = counter.iterator(state);
-			int M = counter.getStateCount(state);//以state为发射起点的总数量
+			int M = counter.getEmissionStateCount(state);//以state为发射起点的总数量
 			
 			EmissionProbEntry emissionProbEntry = new EmissionProbEntry();
 			while(observationsIterator.hasNext()) {//计算当前状态的所有发射概率

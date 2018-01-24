@@ -6,9 +6,9 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMModel;
+import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
@@ -30,7 +30,7 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 	
 	private HashMap<State, Double> pi;
 	
-	private HashMap<StateSequence, ARPAEntry>  transitionMatrix;
+	private HashMap<StateSequence, TransitionProbEntry>  transitionMatrix;
 	
 	private HashMap<State, EmissionProbEntry>  emissionMatrix;
 	
@@ -82,8 +82,14 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 			writePi(new PiEntry(entry.getKey(), entry.getValue()));
 	
 		//写出状态转移概率矩阵
-		for(Entry<StateSequence, ARPAEntry> entry : transitionMatrix.entrySet()) 
-			writeTransitionMatrix(new TransitionEntry(entry.getKey(), entry.getValue()));
+		for(Entry<StateSequence, TransitionProbEntry> entry : transitionMatrix.entrySet()) {
+			Iterator<Entry<State, Double>> iterator = entry.getValue().entryIterator();
+			
+			while(iterator.hasNext()) {
+				Entry<State, Double> probEntry = iterator.next();
+				writeTransitionMatrix(new TransitionEntry(entry.getKey(), probEntry.getKey(), probEntry.getValue()));
+			}
+		}
 					
 		//写出发射概率矩阵
 		for(Entry<State, EmissionProbEntry> entry : emissionMatrix.entrySet()) {

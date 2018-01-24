@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMModel;
-import hust.tools.hmm.model.HMModelBasedBO;
+import hust.tools.hmm.model.HMModelBasedMap;
+import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
 import hust.tools.hmm.utils.Observation;
@@ -70,7 +70,7 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 		calcTransitionMatrix(counter);
 		calcEmissionMatrix(counter);
 		
-		HMModel model = new HMModelBasedBO(order, counter.getDictionary(), pi, transitionMatrix, emissionMatrix);
+		HMModel model = new HMModelBasedMap(order, counter.getDictionary(), pi, transitionMatrix, emissionMatrix);
 		
 		return model;
 	}
@@ -94,36 +94,40 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 	
 	@Override
 	protected void calcTransitionMatrix(TransitionAndEmissionCounter counter) {
-		Iterator<StateSequence> iterator = counter.transitionIterator();
-		while(iterator.hasNext()) {//遍历所有转移状态,计算转移概率
-			StateSequence sequence = iterator.next();
-			
-			int nCount = counter.getSequenceCount(sequence);
-			int n_Count = 0;
-			if(sequence.length() == 1)
-				n_Count = counter.getTotalStatesCount();
-			else {//保证归一化
-				StateSequence n_States = sequence.remove(sequence.length() - 1);
-				
-				Set<State> suffixs = counter.getSuffixs(n_States);
-				for(State suffix : suffixs) 
-					n_Count += counter.getSequenceCount(n_States.add(suffix));
+		Set<State> statesSet = counter.getDictionary().getStates();
+		int N = statesSet.size();
+		for(State state : statesSet) {//遍历所有隐藏状态，增加所有可能的一阶转移
+			StateSequence start = new StateSequence(state);
+			int n_Count = counter.getTransitionStartCount(start);
+			TransitionProbEntry entry = new TransitionProbEntry();
+			for(State target : statesSet) {
+				int count = counter.getTransitionCount(start, target);
+				double prob = (delta + count) / (n_Count + N * delta);
+				entry.put(target, Math.log10(prob));
 			}
 			
-			double prob = (nCount + delta)/ (n_Count + delta * counter.getDictionary().stateCount());
-			transitionMatrix.put(sequence, new ARPAEntry(Math.log10(prob), 0));
+			transitionMatrix.put(start, entry);
 		}
-
-		Set<StateSequence> keySet = transitionMatrix.keySet();
-		for(StateSequence sequence : keySet) {//遍历计算回退权重
-			if(sequence.length() != order + 1) {//最高阶无回退权重
-				ARPAEntry entry = transitionMatrix.get(sequence);
-				double bow = calcBOW(sequence);
-				if(!(Double.isNaN(bow) || Double.isInfinite(bow))) {
-					entry = entry.setLog_bo(Math.log10(bow));
-					transitionMatrix.put(sequence, entry);
+		
+		for(int i = 1; i < order; i++) {//遍历增加所有2-order阶的转移概率
+			StateSequence[] sequences = transitionMatrix.keySet().toArray(new StateSequence[transitionMatrix.size()]);
+			for(StateSequence sequence : sequences) {
+				if(sequence.length() == i) {
+					for(State state : statesSet) {
+						StateSequence start = sequence.add(state);
+						int n_Count = counter.getTransitionStartCount(start);
+						
+						TransitionProbEntry entry = new TransitionProbEntry();
+						for(State target : statesSet) {
+							int count = counter.getTransitionCount(start, target);
+							double prob = (delta + count) / (n_Count + N * delta);
+							entry.put(target, Math.log10(prob));
+						}
+						
+						transitionMatrix.put(start, entry);
+					}
 				}
-			}//end if
+			}
 		}
 	}
 	
@@ -138,7 +142,7 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 		while(iterator.hasNext()) {//遍历所有发射
 			State state = iterator.next();
 			Iterator<Observation> observationsIterator = counter.iterator(state);
-			int M = counter.getStateCount(state);//以state为发射起点的总数量
+			int M = counter.getEmissionStateCount(state);//以state为发射起点的总数量
 			
 			EmissionProbEntry emissionProbEntry = new EmissionProbEntry();
 			while(observationsIterator.hasNext()) {//计算当前状态的所有发射概率

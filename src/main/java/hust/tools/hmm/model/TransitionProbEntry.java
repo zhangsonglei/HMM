@@ -8,7 +8,7 @@ import hust.tools.hmm.utils.State;
 
 /**
  *<ul>
- *<li>Description: 记录转移的目标状态概率及回退权重
+ *<li>Description: 记录转移的目标状态概率对数
  *<li>Company: HUST
  *<li>@author Sonly
  *<li>Date: 2018年1月10日
@@ -17,36 +17,24 @@ import hust.tools.hmm.utils.State;
 public class TransitionProbEntry {
 	
 	/**
-	 * 转移到某个状态的数量
+	 * 转移到某个状态的概率的对数
 	 */
-	private HashMap<State, ARPAEntry> transitionProb;
+	private HashMap<State, Double> transitionProb;
 	
 	public TransitionProbEntry() {
 		transitionProb = new HashMap<>();
 	}
 	
-	public TransitionProbEntry(HashMap<State, ARPAEntry> transitionCount) {
-		this.transitionProb = transitionCount;
+	public TransitionProbEntry(HashMap<State, Double> transitionProb) {
+		this.transitionProb = transitionProb;
 	}
 	
 	/**
 	 * 增加或修改给定目标转移状态的概率及回退权重
 	 * @param state	转移到的目标状态
 	 */
-	public void put(State state, ARPAEntry entry) {
-		transitionProb.put(state, entry);
-	}
-	
-	/**
-	 * 返回给定目标转移状态的概率及回退权重
-	 * @param state	转移到的目标状态
-	 * @return		概率及回退权重
-	 */
-	public ARPAEntry get(State state) {
-		if(contain(state)) 
-			return transitionProb.get(state);
-		
-		return null;
+	public void put(State state, double logProb) {
+		transitionProb.put(state, logProb);
 	}
 	
 	/**
@@ -55,22 +43,10 @@ public class TransitionProbEntry {
 	 * @return		概率的对数
 	 */
 	public double getTransitionLogProb(State state) {
-		if(contain(state))
-			return transitionProb.get(state).getLog_prob();
-		else
-			return 0;
-	}
-	
-	/**
-	 * 返回给定转移到目标状态的回退权重的对数
-	 * @param state	转移到的目标状态
-	 * @return		回退权重的对数
-	 */
-	public double getTransitionLogBow(State state) {
-		if(contain(state))
-			return transitionProb.get(state).getLog_bo();
-		else
-			return 0;
+		if(transitionProb.containsKey(state))
+			return transitionProb.get(state);
+
+		return 0;
 	}
 	
 	/**
@@ -86,7 +62,7 @@ public class TransitionProbEntry {
 	 * 返回转移状态概率的迭代器
 	 * @return	迭代器
 	 */
-	public Iterator<Entry<State, ARPAEntry>> entryIterator() {
+	public Iterator<Entry<State, Double>> entryIterator() {
 		return transitionProb.entrySet().iterator();
 	}
 	
@@ -96,15 +72,6 @@ public class TransitionProbEntry {
 	 */
 	public Iterator<State> keyIterator() {
 		return transitionProb.keySet().iterator();
-	}
-	
-	/**
-	 * 删除目标状态
-	 * @param state	待删除的目标状态
-	 */
-	public void remove(State state) {
-		if(contain(state))
-			transitionProb.remove(state);
 	}
 	
 	/**

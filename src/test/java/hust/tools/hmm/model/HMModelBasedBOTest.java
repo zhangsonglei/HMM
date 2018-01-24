@@ -29,7 +29,7 @@ import hust.tools.hmm.utils.StringState;
 public class HMModelBasedBOTest {
 	
 	private int order;
-	private HMModelBasedBO model;
+	private HMModelBasedMap model;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -75,7 +75,7 @@ public class HMModelBasedBOTest {
 		samples.add(new SupervisedHMMSample(stateSequence, observationSequence));
 		
 		SupervisedAdditionHMMTrainer learner = new SupervisedAdditionHMMTrainer(samples, order, 1.0);
-		model = (HMModelBasedBO) learner.train();
+		model = (HMModelBasedMap) learner.train();
 	}
 
 	//测试返回给定转移的概率

@@ -98,7 +98,7 @@ public class HMMWithViterbi implements HMM {
 		}
 		
 		//归纳计算
-		for(int t = 1; t < observationSequenceIndex.length; t++) 		
+		for(int t = 1; t < observationSequenceIndex.length; t++)
 			for(int i = 0; i < stateTypesCount; i++)
 				viterbiStep(observationSequenceIndex[t], t, i);
 		
@@ -129,7 +129,7 @@ public class HMMWithViterbi implements HMM {
 		int max_psi = 0;//最短路径
 		
 		for(int i = 0; i < model.statesCount(); i++) {
-			double currentDelta = delta[t - 1][i] + model.transitionLogProb(i, j);
+			double currentDelta = delta[t - 1][i] + model.transitionLogProb(new int[]{i}, j);
 			
 			if(maxDelta < currentDelta) {
 				maxDelta = currentDelta;

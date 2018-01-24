@@ -12,16 +12,16 @@ import hust.tools.hmm.utils.State;
 
 /**
  *<ul>
- *<li>Description: 基于回退的隐式马尔科夫模型
+ *<li>Description: 基于Map数据结构的隐式马尔科夫模型
  *<li>Company: HUST
  *<li>@author Sonly
  *<li>Date: 2017年12月26日
  *</ul>
  */
-public class HMModelBasedBO implements HMModel {
+public class HMModelBasedMap implements HMModel {
 	
 	/**
-	 * 
+	 * 版本序列号
 	 */
 	private static final long serialVersionUID = 4845677181963311625L;
 
@@ -33,11 +33,11 @@ public class HMModelBasedBO implements HMModel {
 	
 	private HashMap<State, Double> pi;
 	
-	private HashMap<StateSequence, ARPAEntry>  transitionMatrix;
+	private HashMap<StateSequence, TransitionProbEntry>  transitionMatrix;
 	
 	private HashMap<State, EmissionProbEntry>  emissionMatrix;
 	
-	public HMModelBasedBO(int order, Dictionary dict, HashMap<State, Double> pi, HashMap<StateSequence, ARPAEntry>  transitionMatrix, HashMap<State, EmissionProbEntry>  emissionMatrix) {
+	public HMModelBasedMap(int order, Dictionary dict, HashMap<State, Double> pi, HashMap<StateSequence, TransitionProbEntry>  transitionMatrix, HashMap<State, EmissionProbEntry>  emissionMatrix) {
 		this.order = order;
 		this.dict = dict;
 		this.pi = pi;
@@ -61,7 +61,7 @@ public class HMModelBasedBO implements HMModel {
 	}
 
 	@Override
-	public HashMap<StateSequence, ARPAEntry> getTransitionMatrix() {
+	public HashMap<StateSequence, TransitionProbEntry> getTransitionMatrix() {
 		return transitionMatrix;
 	}
 
@@ -72,48 +72,22 @@ public class HMModelBasedBO implements HMModel {
 	
 	@Override
 	public double transitionLogProb(StateSequence start, State target) {		
-		return transitionLogProb(start.add(target));
+		if(transitionMatrix.containsKey(start))
+			if(transitionMatrix.get(start).contain(target))
+				return transitionMatrix.get(start).getTransitionLogProb(target);
+		
+		return Math.log10(Double.MIN_VALUE);
 	}
 	
-	private double transitionLogProb(StateSequence sequence) {		
-		if(transitionMatrix.containsKey(sequence))
-			return transitionMatrix.get(sequence).getLog_prob();
-		
-		return oovTransitionProb(sequence);
-	}
-	
-	/**
-	 * 回退计算不存在的转移概率
-	 * @param oov	不存在的转移
-	 * @return		不存在的转移概率
-	 */
-	private double oovTransitionProb(StateSequence oov) {
-		if(oov.length() == 1)
-			return 0;
-		
-		StateSequence n_States = oov.remove(oov.length() - 1);
-		StateSequence _States = oov.remove(0);
-
-		if(transitionMatrix.containsKey(n_States))
-			return transitionMatrix.get(n_States).getLog_bo() + transitionLogProb(_States);
-		else
-			return transitionLogProb(_States);
-	}
-	
-	private double transitionLogProb(int[] start, int target) {
-		State[] states = new State[start.length + 1];
-		int i = 0;
-		for(i = 0; i < start.length; i++)
-			states[i] = dict.getState(start[i]);
-		
-		states[i] = dict.getState(target);
-				
-		return transitionLogProb(new StateSequence(states));
-	}
-
 	@Override
-	public double transitionLogProb(int i, int j) {
-		return transitionLogProb(new int[]{i}, j);
+	public double transitionLogProb(int[] start, int target) {
+		State[] si = new State[start.length];
+		for(int i = 0; i < start.length; i++)
+			si[i] = dict.getState(start[i]);
+		
+		State sj = dict.getState(target);
+				
+		return transitionLogProb(new StateSequence(si), sj);
 	}
 	
 	@Override
@@ -183,13 +157,6 @@ public class HMModelBasedBO implements HMModel {
 	}
 
 	@Override
-	public HMModel clone() throws CloneNotSupportedException{
-		
-		return null;
-		
-	}
-
-	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -209,7 +176,7 @@ public class HMModelBasedBO implements HMModel {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		HMModelBasedBO other = (HMModelBasedBO) obj;
+		HMModelBasedMap other = (HMModelBasedMap) obj;
 		if (dict == null) {
 			if (other.dict != null)
 				return false;
@@ -234,5 +201,4 @@ public class HMModelBasedBO implements HMModel {
 			return false;
 		return true;
 	}
-
 }

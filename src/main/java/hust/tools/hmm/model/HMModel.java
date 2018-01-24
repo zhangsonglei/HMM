@@ -34,11 +34,11 @@ public interface HMModel extends Serializable, Cloneable {
 	
 	/**
 	 * 返回给定转移的转移概率对数
-	 * @param i	起始隐藏状态索引
-	 * @param j	目的隐藏状态索引
-	 * @return	转移概率对数
+	 * @param start		起始隐藏状态索引
+	 * @param target	目的隐藏状态索引
+	 * @return			转移概率对数
 	 */
-	public double transitionLogProb(int i, int j);
+	public double transitionLogProb(int[] start, int target);
 	
 	/**
 	 * 返回给定转移的转移概率对数
@@ -120,13 +120,11 @@ public interface HMModel extends Serializable, Cloneable {
 	 * 返回转移概率矩阵
 	 * @return	转移概率矩阵
 	 */
-	public HashMap<StateSequence, ARPAEntry> getTransitionMatrix();
+	public HashMap<StateSequence, TransitionProbEntry> getTransitionMatrix();
 
 	/**
 	 * 返回发射概率矩阵
 	 * @return	发射概率矩阵
 	 */
 	public HashMap<State, EmissionProbEntry> getEmissionMatrix();
-	
-	public HMModel clone() throws CloneNotSupportedException;
 }

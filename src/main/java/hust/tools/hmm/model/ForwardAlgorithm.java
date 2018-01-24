@@ -70,7 +70,7 @@ public class ForwardAlgorithm {
 		double sum = 0;
 		
 		for(int i = 0; i < model.statesCount(); i++)
-			sum += Math.pow(10, alpha[t - 1][i] + model.transitionLogProb(i, j));
+			sum += Math.pow(10, alpha[t - 1][i] + model.transitionLogProb(new int[]{i}, j));
 		
 		int observation = model.getObservationIndex(observations.get(t));//观测状态的索引
 		alpha[t][j] = Math.log10(sum) + model.emissionLogProb(j, observation);
