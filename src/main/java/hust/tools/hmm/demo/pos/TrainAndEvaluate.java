@@ -12,7 +12,7 @@ import hust.tools.hmm.io.TextFileHMMReader;
 import hust.tools.hmm.io.TextFileHMMWriter;
 import hust.tools.hmm.learn.HMMTrainer;
 import hust.tools.hmm.learn.SupervisedAdditionHMMTrainer;
-import hust.tools.hmm.learn.SupervisedKatzHMMTrainer;
+import hust.tools.hmm.learn.SupervisedGoodTuringHMMTrainer;
 import hust.tools.hmm.learn.SupervisedMLHMMTrainer;
 import hust.tools.hmm.learn.SupervisedEmissionOnlyHMMTrainer;
 import hust.tools.hmm.learn.SupervisedRevEmissionHMMTrainer;
@@ -96,7 +96,7 @@ public class TrainAndEvaluate {
 			learner = new SupervisedRevEmissionHMMTrainer(counter);
 			break;
 		case "KATZ":
-			learner = new SupervisedKatzHMMTrainer(counter);
+			learner = new SupervisedGoodTuringHMMTrainer(counter);
 			break;
 		default:
 			throw new IllegalArgumentException("错误的平滑方法：" + smooth);

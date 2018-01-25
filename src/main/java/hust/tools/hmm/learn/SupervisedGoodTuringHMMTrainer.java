@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import hust.tools.hmm.model.ARPAEntry;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMModel;
-import hust.tools.hmm.model.HMModelBasedBO;
+import hust.tools.hmm.model.HMModelBasedMap;
+import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
 import hust.tools.hmm.utils.Observation;
@@ -22,26 +22,26 @@ import hust.tools.hmm.utils.StateSequence;
  *<li>Date: 2018年1月10日
  *</ul>
  */
-public class SupervisedKatzHMMTrainer extends AbstractSupervisedHMMTrainer {
+public class SupervisedGoodTuringHMMTrainer extends AbstractSupervisedHMMTrainer {
 	
 	/**
 	 * 对初始转移向量和发射概率进行加delta平滑
 	 */
 	private final double delta = 0.01;
 	
-	public SupervisedKatzHMMTrainer(TransitionAndEmissionCounter counter) {
+	public SupervisedGoodTuringHMMTrainer(TransitionAndEmissionCounter counter) {
 		super(counter);
 	}
 	
-	public SupervisedKatzHMMTrainer(TransitionAndEmissionCounter counter, double delta) {
+	public SupervisedGoodTuringHMMTrainer(TransitionAndEmissionCounter counter, double delta) {
 		super(counter);
 	}
 	
-	public SupervisedKatzHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
+	public SupervisedGoodTuringHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
 		super(sampleStream, order);
 	}
 	
-	public SupervisedKatzHMMTrainer(List<SupervisedHMMSample> samples, int order) throws IOException {
+	public SupervisedGoodTuringHMMTrainer(List<SupervisedHMMSample> samples, int order) throws IOException {
 		super(samples, order);
 	}
 	
@@ -51,7 +51,7 @@ public class SupervisedKatzHMMTrainer extends AbstractSupervisedHMMTrainer {
 		calcTransitionMatrix(counter);
 		calcEmissionMatrix(counter);
 		
-		HMModel model = new HMModelBasedBO(order, counter.getDictionary(), pi, transitionMatrix, emissionMatrix);
+		HMModel model = new HMModelBasedMap(order, counter.getDictionary(), pi, transitionMatrix, emissionMatrix);
 		
 		return model;
 	}
@@ -77,45 +77,60 @@ public class SupervisedKatzHMMTrainer extends AbstractSupervisedHMMTrainer {
 	protected void calcTransitionMatrix(TransitionAndEmissionCounter counter) {
 		GoodTuringCounts goodTuringCounts = new GoodTuringCounts(counter.getTransitionCount(), order + 1);
 		
-		Iterator<StateSequence> iterator = counter.transitionIterator();
-		while(iterator.hasNext()) {
-			StateSequence sequence = iterator.next();
-			if(sequence.length() > 2 && counter.getSequenceCount(sequence) < 2)//高阶(n > 2)n元组计数小于2 的忽略
-				continue;
+		Set<State> statesSet = counter.getDictionary().getStates();
+		for(State state : statesSet) {//遍历所有隐藏状态，增加所有可能的一阶转移
+			StateSequence start = new StateSequence(state);
+			double n_Count = 0;
+			TransitionProbEntry entry = new TransitionProbEntry();
+			for(State target : statesSet) {//计算分母
+				int count = counter.getTransitionCount(start, target);
+				if(count != 0)
+					n_Count += goodTuringCounts.getNr(count, 1);
+				else
+					n_Count += goodTuringCounts.getNr(1, 1);
+			}
 			
-			double prob = calcKatzNGramProbability(goodTuringCounts, sequence);
-			ARPAEntry entry = new ARPAEntry(Math.log10(prob), 0.0);
-			transitionMatrix.put(sequence, entry);
+			for(State target : statesSet) {//计算每一种一阶转移的goodturing概率
+				int count = counter.getTransitionCount(start, target);
+				if(count != 0)
+					entry.put(target, Math.log10(goodTuringCounts.getNr(count, 1) / n_Count));
+				else
+					entry.put(target, Math.log10(goodTuringCounts.getNr(1, 1)/ n_Count));
+			}
+			
+			transitionMatrix.put(start, entry);
 		}
-
-		Set<StateSequence> keySet = transitionMatrix.keySet();
-		for(StateSequence sequence : keySet) {//遍历计算回退权重
-			if(sequence.length() != order + 1) {//最高阶无回退权重
-				ARPAEntry entry = transitionMatrix.get(sequence);
-				double bow = calcBOW(sequence);
-				if(!(Double.isNaN(bow) || Double.isInfinite(bow))) {
-					entry = entry.setLog_bo(Math.log10(bow));
-					transitionMatrix.put(sequence, entry);
-				}
-			}//end if
-		}
-	}
-	
-	/**
-	 * 使用Good Turing平滑算法计算给定ngram在词汇表中的概率
-	 * @param nGram					待计算概率的n元
-	 * @param nGramCount			n元的计数
-	 * @return						Good Turing平滑概率			
-	 */
-	private double calcKatzNGramProbability(GoodTuringCounts goodTuringCounts, StateSequence sequence) {
-		int order = sequence.length();
-		if(order > 0) {
-			int count = counter.getSequenceCount(sequence);
-			double prob = goodTuringCounts.getDiscountCoeff(count, order) * calcTransitionMLProbability(sequence, counter);
 		
-			return prob;
-		}else
-			throw new IllegalArgumentException("n元组不合法：" + sequence);
+		for(int i = 1; i < order; i++) {//遍历增加所有2-order阶的转移概率
+			StateSequence[] sequences = transitionMatrix.keySet().toArray(new StateSequence[transitionMatrix.size()]);
+			for(StateSequence sequence : sequences) {
+				if(sequence.length() == i) {
+					for(State state : statesSet) {
+						StateSequence start = sequence.add(state);
+						double n_Count = 0;
+						
+						TransitionProbEntry entry = new TransitionProbEntry();
+						for(State target : statesSet) {//计算分母
+							int count = counter.getTransitionCount(start, target);
+							if(count != 0)
+								n_Count += goodTuringCounts.getNr(count, i + 1);
+							else
+								n_Count += goodTuringCounts.getNr(1, i + 1);
+						}
+						
+						for(State target : statesSet) {//计算每一种转移的goodturing概率
+							int count = counter.getTransitionCount(start, target);
+							if(count != 0)
+								entry.put(target, Math.log10(goodTuringCounts.getNr(count, i + 1) / n_Count));
+							else
+								entry.put(target, Math.log10(goodTuringCounts.getNr(1, i + 1)/ n_Count));
+						}
+						
+						transitionMatrix.put(start, entry);
+					}
+				}
+			}
+		}
 	}
 	
 	/**
@@ -129,7 +144,7 @@ public class SupervisedKatzHMMTrainer extends AbstractSupervisedHMMTrainer {
 		while(iterator.hasNext()) {//遍历所有发射
 			State state = iterator.next();
 			Iterator<Observation> observationsIterator = counter.iterator(state);
-			int M = counter.getStateCount(state);//以state为发射起点的总数量
+			int M = counter.getEmissionStateCount(state);//以state为发射起点的总数量
 			
 			EmissionProbEntry emissionProbEntry = new EmissionProbEntry();
 			while(observationsIterator.hasNext()) {//计算当前状态的所有发射概率

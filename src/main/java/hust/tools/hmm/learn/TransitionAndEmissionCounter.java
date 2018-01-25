@@ -229,6 +229,13 @@ public class TransitionAndEmissionCounter {
 		return 0;
 	}
 	
+	public int getTransitionSuffixCount(StateSequence start) {
+		if(transitionCountMap.containsKey(start))
+			return transitionCountMap.get(start).size();
+		
+		return 0;
+	}
+	
 	/**
 	 * 返回给定发射的数量
 	 * @param start		发射的起点
