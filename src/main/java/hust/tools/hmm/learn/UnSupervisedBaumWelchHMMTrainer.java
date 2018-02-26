@@ -65,7 +65,7 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		UnSupervisedHMMSample sample = null;
 		while((sample = (UnSupervisedHMMSample) sampleStream.read()) != null) {
 			ObservationSequence observationSequence = sample.getObservationSequence();
-			sequence = 	sequence.add(observationSequence);
+			sequence = 	sequence.addLast(observationSequence);
 			for(int i = 0; i < observationSequence.length(); i++)
 				observationSet.add(observationSequence.get(i));
 		}

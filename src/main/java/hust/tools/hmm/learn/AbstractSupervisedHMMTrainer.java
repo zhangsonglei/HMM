@@ -9,10 +9,8 @@ import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
 import hust.tools.hmm.utils.Dictionary;
-import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
 import hust.tools.hmm.utils.StateSequence;
-import hust.tools.hmm.utils.StringObservation;
 
 /**
  *<ul>
@@ -23,9 +21,7 @@ import hust.tools.hmm.utils.StringObservation;
  *</ul>
  */
 public abstract class AbstractSupervisedHMMTrainer implements HMMTrainer {
-	
-	protected final Observation UNKNOWN = new StringObservation("UNKNOWN");
-	
+		
 	protected int order;
 	
 	private final int DEFAULT_ORDER = 1;

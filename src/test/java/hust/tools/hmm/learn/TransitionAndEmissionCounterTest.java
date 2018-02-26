@@ -12,6 +12,7 @@ import hust.tools.hmm.learn.TransitionAndEmissionCounter;
 import hust.tools.hmm.utils.StringObservation;
 import hust.tools.hmm.utils.StringState;
 import hust.tools.hmm.stream.SupervisedHMMSample;
+import hust.tools.hmm.utils.CommonUtils;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.ObservationSequence;
 import hust.tools.hmm.utils.State;
@@ -30,11 +31,6 @@ public class TransitionAndEmissionCounterTest {
 	private int order;
 	private List<SupervisedHMMSample> samples;
 	private TransitionAndEmissionCounter counter;
-
-	private StateSequence sSequence;
-	private ObservationSequence oSequence;
-	private SupervisedHMMSample sample;
-	
 	
 	private State[] states23;
 	private State[] states89;
@@ -45,20 +41,7 @@ public class TransitionAndEmissionCounterTest {
 	public void setUp() throws Exception {
 		states23 = new StringState[]{new StringState("2"), new StringState("3")};
 		states36 = new StringState[]{new StringState("3"), new StringState("6")};
-		states89 = new StringState[]{new StringState("8"), new StringState("9")};
-		
-		String[] h = new String[]{"1", "3", "4", "6", "8", "9", "0"};
-		String[] o = new String[]{"c", "b", "b", "a", "e", "a", "b"};
-		State[] ss = new StringState[h.length];
-		Observation[] os = new StringObservation[o.length];
-		for(int i = 0; i < h.length; i++) {
-			ss[i] = new StringState(h[i]);
-			os[i] = new StringObservation(o[i]);
-		}
-		sSequence = new StateSequence(ss);
-		oSequence = new ObservationSequence(os);
-		sample = new SupervisedHMMSample(sSequence, oSequence);
-		
+		states89 = new StringState[]{new StringState("8"), new StringState("9")};		
 		
 		order = 3;
 		samples = new ArrayList<>();
@@ -104,47 +87,6 @@ public class TransitionAndEmissionCounterTest {
 		counter = new TransitionAndEmissionCounter(samples, order);
 	}
 
-	//测试计数更新方法
-	@Test
-	public void testUpdate() {
-		counter.update(sample);
-		
-		State[] states = new StringState[]{new StringState("8"), new StringState("9"), new StringState("0")};
-		assertEquals(2, counter.getTransitionStartCount(new StateSequence(states)));
-		assertEquals(1, counter.getTransitionStartCount(new StateSequence(states23)));
-		assertEquals(3, counter.getTransitionStartCount(new StateSequence(new StringState("3"))));
-		
-		
-		State target = new StringState("4");
-		assertEquals(1, counter.getTransitionCount(new StateSequence(states23), target));
-		
-		states = new StringState[]{new StringState("3")};
-		assertEquals(2, counter.getTransitionCount(new StateSequence(states), target));
-		
-		
-		
-		State state = new StringState("8");
-		Observation observation = new StringObservation("e");
-		assertEquals(2, counter.getEmissionCount(state, observation));
-		
-		state = new StringState("5");
-		observation = new StringObservation("z");
-		assertEquals(0, counter.getEmissionCount(state, observation));
-	}
-
-	//测试转移起点计数
-	@Test
-	public void testGetSequeceCount() {
-		State[] states = new StringState[]{new StringState("8"), new StringState("9"), new StringState("0")};
-		assertEquals(1, counter.getTransitionStartCount(new StateSequence(states)));
-		states = new StringState[]{new StringState("7"), new StringState("8"), new StringState("9"), new StringState("0")};
-		assertEquals(1, counter.getTransitionStartCount(new StateSequence(states)));
-		
-		assertEquals(1, counter.getTransitionStartCount(new StateSequence(states23)));
-		assertEquals(0, counter.getTransitionStartCount(new StateSequence(states36)));
-		assertEquals(2, counter.getTransitionStartCount(new StateSequence(new StringState("3"))));
-	}
-
 	//测试转移计数
 	@Test
 	public void testGetTransitionCount() {
@@ -157,6 +99,28 @@ public class TransitionAndEmissionCounterTest {
 		
 		target = new StringState("7");
 		assertEquals(0, counter.getTransitionCount(new StateSequence(states36), target));
+		
+		states = new StringState[]{(StringState) CommonUtils.SOS, new StringState("1")};
+		target = new StringState("2");
+		assertEquals(1, counter.getTransitionCount(new StateSequence(states), target));
+		target = new StringState("3");
+		assertEquals(1, counter.getTransitionCount(new StateSequence(states), target));
+		
+		states = new StringState[]{(StringState) CommonUtils.SOS, new StringState("1"), new StringState("2")};
+		target = new StringState("3");
+		assertEquals(1, counter.getTransitionCount(new StateSequence(states), target));
+		
+		states = new StringState[]{(StringState) CommonUtils.SOS, new StringState("1"), new StringState("3")};
+		target = new StringState("5");
+		assertEquals(1, counter.getTransitionCount(new StateSequence(states), target));
+		
+		states = new StringState[]{(StringState) CommonUtils.SOS, new StringState("0")};
+		target = new StringState("8");
+		assertEquals(1, counter.getTransitionCount(new StateSequence(states), target));
+		
+		states = new StringState[]{(StringState) CommonUtils.SOS, new StringState("0"), new StringState("8")};
+		target = new StringState("6");
+		assertEquals(1, counter.getTransitionCount(new StateSequence(states), target));
 	}
 
 	//测试发射计数

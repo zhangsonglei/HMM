@@ -14,12 +14,12 @@ public class POSTagger {
 	
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException {
-		file = new File("E:\\JOB\\hmm\\data\\conll.pos");
-//		file = new File("E:\\JOB\\hmm\\data\\pos.train");
+//		file = new File("E:\\JOB\\hmm\\data\\conll.pos");
+		file = new File("E:\\JOB\\hmm\\data\\pos.train");
 		samples = TrainCorpusReader.read(file);
 		int order = 1;
 		
-		TrainAndEvaluate trainAndEvaluate = new TrainAndEvaluate(samples, order, "ml");
+		TrainAndEvaluate trainAndEvaluate = new TrainAndEvaluate(samples, order, "add");
 		trainAndEvaluate.crossValidation(order, 10);
 
 //		List<SupervisedHMMSample> trainSamples = new ArrayList<>();

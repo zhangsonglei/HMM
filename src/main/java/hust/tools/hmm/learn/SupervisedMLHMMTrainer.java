@@ -11,6 +11,7 @@ import hust.tools.hmm.model.HMModelBasedMap;
 import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
+import hust.tools.hmm.utils.CommonUtils;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
 import hust.tools.hmm.utils.StateSequence;
@@ -89,7 +90,7 @@ public class SupervisedMLHMMTrainer extends AbstractSupervisedHMMTrainer {
 			for(StateSequence sequence : sequences) {
 				if(sequence.length() == i) {
 					for(State state : statesSet) {
-						StateSequence start = sequence.add(state);
+						StateSequence start = sequence.addLast(state);
 						int n_Count = counter.getTransitionStartCount(start);
 						
 						TransitionProbEntry entry = new TransitionProbEntry();
@@ -128,7 +129,7 @@ public class SupervisedMLHMMTrainer extends AbstractSupervisedHMMTrainer {
 				emissionProbEntry.put(observation, Math.log10(prob));
 			}
 
-			emissionProbEntry.put(UNKNOWN, Math.log10(Double.MIN_VALUE));
+			emissionProbEntry.put(CommonUtils.UNKNOWN, Math.log10(Double.MIN_VALUE));
 			emissionMatrix.put(state, emissionProbEntry);
 		}//end while
 	}

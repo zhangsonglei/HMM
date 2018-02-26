@@ -6,6 +6,16 @@ import java.util.List;
 public class CommonUtils {
 	
 	/**
+	 * 隐藏状态句首标记(Start of Sentence)
+	 */
+	public final static State SOS = new StringState("SOS");
+	
+	/**
+	 * 观测状态未登录词
+	 */
+	public final static Observation UNKNOWN = new StringObservation("UNKNOWN");
+	
+	/**
 	   * <li>将给定的数组和n，生成所有可能的n元组
 	   * @param input 	待分割为N元组的序列
 	   * @param n       N元组的大小

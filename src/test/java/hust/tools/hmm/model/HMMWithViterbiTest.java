@@ -88,7 +88,7 @@ public class HMMWithViterbiTest {
 	@Test
 	public void testBestStateSeqence() {
 		State[] states = new StringState[]{new StringState("b"), new StringState("a"), new StringState("a")};
-		assertEquals(new StateSequence(states), model.bestStateSeqence(sequence, 1));
+		assertEquals(new StateSequence(states), model.bestStateSeqence(sequence));
 	}
 
 	@Test
@@ -107,30 +107,30 @@ public class HMMWithViterbiTest {
 		for(double prob : probs)
 			totalProb += prob;
 		
-		assertEquals(totalProb, model.getProb(sequence, 1), 0.00000000000000001);
+		assertEquals(totalProb, model.getProb(sequence), 0.00000000000000001);
 		
 		State[] states = new StringState[]{new StringState("a"), new StringState("a"), new StringState("a")};
-		assertEquals(probs[0], model.getProb(sequence, new StateSequence(states), 1), 0.00000000000000001);
+		assertEquals(probs[0], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
 		
 		states = new StringState[]{new StringState("a"), new StringState("a"), new StringState("b")};
-		assertEquals(probs[1], model.getProb(sequence, new StateSequence(states), 1), 0.00000000000000001);
+		assertEquals(probs[1], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
 		
 		states = new StringState[]{new StringState("a"), new StringState("b"), new StringState("a")};
-		assertEquals(probs[2], model.getProb(sequence, new StateSequence(states), 1), 0.00000000000000001);
+		assertEquals(probs[2], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
 		
 		states = new StringState[]{new StringState("a"), new StringState("b"), new StringState("b")};
-		assertEquals(probs[3], model.getProb(sequence, new StateSequence(states), 1), 0.00000000000000001);
+		assertEquals(probs[3], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
 		
 		states = new StringState[]{new StringState("b"), new StringState("a"), new StringState("b")};
-		assertEquals(probs[4], model.getProb(sequence, new StateSequence(states), 1), 0.00000000000000001);
+		assertEquals(probs[4], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
 		
 		states = new StringState[]{new StringState("b"), new StringState("b"), new StringState("a")};
-		assertEquals(probs[5], model.getProb(sequence, new StateSequence(states), 1), 0.00000000000000001);
+		assertEquals(probs[5], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
 		
 		states = new StringState[]{new StringState("b"), new StringState("a"), new StringState("a")};
-		assertEquals(probs[6], model.getProb(sequence, new StateSequence(states), 1), 0.00000000000000001);
+		assertEquals(probs[6], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
 		
 		states = new StringState[]{new StringState("b"), new StringState("b"), new StringState("b")};
-		assertEquals(probs[7], model.getProb(sequence, new StateSequence(states), 1), 0.00000000000000001);
+		assertEquals(probs[7], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
 	}
 }

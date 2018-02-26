@@ -117,7 +117,7 @@ public class TrainAndEvaluate {
 		for(Observation observation : observations)
 			dict.add(observation.toString());
 				
-		POSEvaluator evaluator = new POSEvaluator(hmm, dict, testSamples, order);
+		POSEvaluator evaluator = new POSEvaluator(hmm, dict, testSamples);
 		evaluator.eval();
 	}
 	

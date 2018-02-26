@@ -38,9 +38,22 @@ public class ObservationSequence implements Sequence<Observation> {
 	public ObservationSequence(Observation observation) {
 		this.observations = new Observation[]{observation};
 	}
+	
+	@Override
+	public ObservationSequence addFirst(Observation observation) {
+		if(observations == null)
+			return new ObservationSequence(observation);
+		
+		Observation[] arr = new Observation[length() + 1];
+		arr[0] = observation;
+		for(int i = 1; i <= length(); i++)
+			arr[i] = observations[i - 1];
+				
+		return new ObservationSequence(arr);
+	}
 
 	@Override
-	public ObservationSequence add(Observation observation) {
+	public ObservationSequence addLast(Observation observation) {
 		if(observations == null)
 			return new ObservationSequence(observation);
 		
@@ -55,7 +68,7 @@ public class ObservationSequence implements Sequence<Observation> {
 	}
 	
 	@Override
-	public ObservationSequence add(Observation[] observations) {
+	public ObservationSequence addLast(Observation[] observations) {
 		if(observations == null)
 			return new ObservationSequence(observations);
 		
@@ -71,10 +84,10 @@ public class ObservationSequence implements Sequence<Observation> {
 	}
 	
 	@Override
-	public ObservationSequence add(Sequence<Observation> sequence) {
+	public ObservationSequence addLast(Sequence<Observation> sequence) {
 		Observation[] observations = sequence.toArray(); 
 		
-		return add(observations);
+		return addLast(observations);
 	}
 
 	@Override

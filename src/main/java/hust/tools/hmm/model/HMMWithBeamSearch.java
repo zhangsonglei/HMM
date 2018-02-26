@@ -25,12 +25,18 @@ public class HMMWithBeamSearch implements HMM {
 	 */
 	private HMModel model;
 	
-	public HMMWithBeamSearch(HMModel model) {
+	private int order;
+	
+	private int beamSize;
+	
+	public HMMWithBeamSearch(HMModel model, int beamSize) {
 		this.model = model;
+		this.order = model.getOrder();
+		this.beamSize = beamSize;
 	}
 
 	@Override
-	public double getProb(ObservationSequence observations, StateSequence states, int order) {
+	public double getProb(ObservationSequence observations, StateSequence states) {
 		if(observations.length() == 0 || states.length() == 0)
 			throw new IllegalArgumentException("状态序列或观测序列不能为空");
 		
@@ -47,17 +53,14 @@ public class HMMWithBeamSearch implements HMM {
 	}
 
 	@Override
-	public double getProb(ObservationSequence observations, int order) {
+	public double getProb(ObservationSequence observations) {
 		ForwardAlgorithm algorithm = new ForwardAlgorithm(model, observations);
 		
 		return algorithm.getProb();
 	}
 	
 	@Override
-	public StateSequence bestStateSeqence(ObservationSequence observationSequence, int order) {
-		int beamSize = model.statesCount();
-//		System.out.println("beamSize = " + beamSize);
-		
+	public StateSequence bestStateSeqence(ObservationSequence observationSequence) {
 		List<StateSequence> bestK = beamSearch(observationSequence, beamSize, order, 1);
 		
 		return bestK.get(0);
@@ -76,13 +79,13 @@ public class HMMWithBeamSearch implements HMM {
 	    ObservationSequence observations = new ObservationSequence(observationSequence.get(0));
 	    for(int i = 0; i < model.statesCount(); i++) {
 	    	State candState = model.getState(i);
-	    	states = states.add(candState);
-	    	double score = getProb(observations, states, order);
+	    	states = states.addLast(candState);
+	    	double score = getProb(observations, states);
 	    	prev.add(new StateSequenceWithScore(states, score));
 	    }
 	    
 	    for(int t = 1; t < observationSequence.length(); t++) {
-	    	observations = observations.add(observationSequence.get(t));
+	    	observations = observations.addLast(observationSequence.get(t));
 	    	
 	    	int sz = Math.min(beamSize, prev.size());
 	    	for(int sc = 0; prev.size() > 0 && sc < sz; sc++) {
@@ -90,8 +93,8 @@ public class HMMWithBeamSearch implements HMM {
 		    	
 		    	for(int i = 0; i < model.statesCount(); i++) {
 		    		State candState = model.getState(i);
-		    		StateSequence newStateSequence = top.getStateSequence().add(candState);
-		    		double score = getProb(observations, newStateSequence, order);
+		    		StateSequence newStateSequence = top.getStateSequence().addLast(candState);
+		    		double score = getProb(observations, newStateSequence);
 		    		
 		    		next.add(new StateSequenceWithScore(newStateSequence, score));
 		    	}

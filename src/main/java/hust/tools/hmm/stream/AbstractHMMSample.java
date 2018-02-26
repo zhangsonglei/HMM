@@ -28,7 +28,7 @@ public abstract class AbstractHMMSample {
 	}
 	
 	public void add(Observation observation) {
-		observationSequence = observationSequence.add(observation);
+		observationSequence = observationSequence.addLast(observation);
 	}
 	
 	public Observation getObservationState(int i) {

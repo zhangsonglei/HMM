@@ -3,6 +3,7 @@ package hust.tools.hmm.learn;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMModel;
@@ -10,6 +11,7 @@ import hust.tools.hmm.model.HMModelBasedMap;
 import hust.tools.hmm.model.TransitionProbEntry;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
+import hust.tools.hmm.utils.CommonUtils;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
 import hust.tools.hmm.utils.StateSequence;
@@ -96,6 +98,7 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 	protected void calcTransitionMatrix(TransitionAndEmissionCounter counter) {
 		Set<State> statesSet = counter.getDictionary().getStates();
 		int N = statesSet.size();
+				
 		for(State state : statesSet) {//遍历所有隐藏状态，增加所有可能的一阶转移
 			StateSequence start = new StateSequence(state);
 			int n_Count = counter.getTransitionStartCount(start);
@@ -109,12 +112,28 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 			transitionMatrix.put(start, entry);
 		}
 		
+		if(order > 1) {
+			StateSequence[] sequences = transitionMatrix.keySet().toArray(new StateSequence[transitionMatrix.size()]);
+			for(StateSequence sequence : sequences) {
+				StateSequence start = sequence.addFirst(CommonUtils.SOS);
+				int n_Count = counter.getTransitionStartCount(start);
+				TransitionProbEntry entry = new TransitionProbEntry();
+				for(State target : statesSet) {
+					int count = counter.getTransitionCount(start, target);
+					double prob = (delta + count) / (n_Count + N * delta);
+					entry.put(target, Math.log10(prob));
+				}
+				
+				transitionMatrix.put(start, entry);
+			}
+		}
+		
 		for(int i = 1; i < order; i++) {//遍历增加所有2-order阶的转移概率
 			StateSequence[] sequences = transitionMatrix.keySet().toArray(new StateSequence[transitionMatrix.size()]);
 			for(StateSequence sequence : sequences) {
 				if(sequence.length() == i) {
 					for(State state : statesSet) {
-						StateSequence start = sequence.add(state);
+						StateSequence start = sequence.addLast(state);
 						int n_Count = counter.getTransitionStartCount(start);
 						
 						TransitionProbEntry entry = new TransitionProbEntry();
@@ -128,6 +147,14 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 					}
 				}
 			}
+		}
+		
+		//删除低阶转移概率，仅仅保留order阶概率
+		for(Iterator<Map.Entry<StateSequence, TransitionProbEntry>> it = transitionMatrix.entrySet().iterator(); it.hasNext();) {
+		    StateSequence start = it.next().getKey();
+		    
+		    if(start.length() != order && !start.get(0).equals(CommonUtils.SOS))
+		    	it.remove();
 		}
 	}
 	
@@ -152,7 +179,7 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 				emissionProbEntry.put(observation, Math.log10(prob));
 			}
 
-			emissionProbEntry.put(UNKNOWN, Math.log10(delta / (M + N * delta)));
+			emissionProbEntry.put(CommonUtils.UNKNOWN, Math.log10(delta / (M + N * delta)));
 			emissionMatrix.put(state, emissionProbEntry);
 		}//end while
 	}

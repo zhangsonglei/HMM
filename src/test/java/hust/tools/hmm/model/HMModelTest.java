@@ -26,7 +26,7 @@ import hust.tools.hmm.utils.StringState;
  *<li>Date: 2018年1月12日
  *</ul>
  */
-public class HMModelBasedBOTest {
+public class HMModelTest {
 	
 	private int order;
 	private HMModelBasedMap model;

@@ -131,8 +131,15 @@ public class TransitionAndEmissionCounter {
 		//统计转移计数
 		for(int i = 2; i <= order + 1; i++) {//遍历n元的阶数，将隐藏序列切分成不同阶的n元序列
 			List<State[]> list = CommonUtils.generate(stateSequence, i);
-			for(State[] states : list) //遍历n元序列
-				add(new StateSequence(states));
+			
+			for(int j = 0; j < list.size(); j++) {
+				StateSequence transition = new StateSequence(list.get(j));
+				if(j == 0 && i <= order){
+					add(transition);
+					transition = transition.addFirst(CommonUtils.SOS);
+				}
+				add(transition);
+			}
 		}
 		
 		//统计隐藏状态到观测状态的发射计数
@@ -140,7 +147,7 @@ public class TransitionAndEmissionCounter {
 			State state = stateSequence.get(i);
 			Observation observation = observationSequence.get(i);
 			add(state, observation);
-		}		
+		}
 	}
 	
 	/**
@@ -158,9 +165,9 @@ public class TransitionAndEmissionCounter {
 	 * 增加一条转移，并统计历史转移的所有目标状态（统计n元串计数及其后缀）
 	 * @param sequence	发射
 	 */
-	private void add(StateSequence sequence) {
-		StateSequence start = sequence.remove(sequence.length() - 1);
-		State target = sequence.get(sequence.length() - 1);
+	private void add(StateSequence transition) {
+		StateSequence start = transition.remove(transition.length() - 1);
+		State target = transition.get(transition.length() - 1);
 		
 		TransitionCountEntry entry = null;
 		if(transitionCountMap.containsKey(start)) 
@@ -290,7 +297,7 @@ public class TransitionAndEmissionCounter {
 	public int getRevEmissionCount(Observation observation, State state) {
 		if(reverseEmissionCountMap.containsKey(observation))
 			if(reverseEmissionCountMap.get(observation).contain(state))
-				return reverseEmissionCountMap.get(state).getStateCount(state);
+				return reverseEmissionCountMap.get(observation).getStateCount(state);
 		
 		return 0;
 	}

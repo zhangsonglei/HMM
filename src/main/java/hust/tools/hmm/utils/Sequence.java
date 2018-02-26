@@ -14,11 +14,13 @@ import java.util.List;
  */
 public interface Sequence<T> extends Serializable {
     
-    public Sequence<T> add(T token);
+	public Sequence<T> addFirst(T token);
+	
+    public Sequence<T> addLast(T token);
     
-    public Sequence<T> add(T[] tokens);
+    public Sequence<T> addLast(T[] tokens);
     
-    public Sequence<T> add(Sequence<T> sequence);
+    public Sequence<T> addLast(Sequence<T> sequence);
     
     public Sequence<T> set(T token, int index);
     

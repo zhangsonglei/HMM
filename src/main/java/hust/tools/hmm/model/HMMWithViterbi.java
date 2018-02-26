@@ -40,10 +40,12 @@ public class HMMWithViterbi implements HMM {
 	
 	public HMMWithViterbi(HMModel model) {
 		this.model = model;
+		if(model.getOrder() != 1)
+			throw new IllegalArgumentException("");
 	}
 
 	@Override
-	public double getProb(ObservationSequence observations, StateSequence states, int order) {
+	public double getProb(ObservationSequence observations, StateSequence states) {
 		double logProb = model.getLogPi(states.get(0)) + model.emissionLogProb(states.get(0), observations.get(0));
 		for(int i = 1; i < states.length(); i++) 
 			logProb += model.transitionLogProb(new StateSequence(states.get(i - 1)), states.get(i)) +
@@ -53,19 +55,19 @@ public class HMMWithViterbi implements HMM {
 	}
 
 	@Override
-	public double getProb(ObservationSequence observations, int order) {
+	public double getProb(ObservationSequence observations) {
 		ForwardAlgorithm algorithm = new ForwardAlgorithm(model, observations);
 		
 		return algorithm.getProb();
 	}
 	
 	@Override
-	public StateSequence bestStateSeqence(ObservationSequence observationSequence, int order) {
+	public StateSequence bestStateSeqence(ObservationSequence observationSequence) {
 		viterbiCalculator(observationSequence);
 		
 		StateSequence sequence = new StateSequence();
 		for(int index : stateSequenceIndex)
-			sequence = sequence.add(model.getState(index));
+			sequence = sequence.addLast(model.getState(index));
 		
 		return sequence;
 	}

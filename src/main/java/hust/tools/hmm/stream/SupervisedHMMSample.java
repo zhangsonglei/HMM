@@ -32,7 +32,7 @@ public class SupervisedHMMSample extends AbstractHMMSample {
 	}
 
 	public void add(State state, Observation observation) {
-		stateSequence = stateSequence.add(state);
+		stateSequence = stateSequence.addLast(state);
 		add(observation);
 	}
 	

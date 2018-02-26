@@ -38,9 +38,22 @@ public class StateSequence implements Sequence<State> {
 	public StateSequence(State state) {
 		this.states = new State[]{state};
 	}
-
+	
 	@Override
-	public StateSequence add(State state) {
+	public StateSequence addFirst(State state) {
+		if(states == null)
+			return new StateSequence(state);
+		
+		State[] arr = new State[length() + 1];
+		arr[0] = state;
+		for(int i = 1; i <= length(); i++)
+			arr[i] = states[i - 1];
+				
+		return new StateSequence(arr);
+	}
+	
+	@Override
+	public StateSequence addLast(State state) {
 		if(states == null)
 			return new StateSequence(state);
 		
@@ -55,7 +68,7 @@ public class StateSequence implements Sequence<State> {
 	}
 	
 	@Override
-	public StateSequence add(State[] states) {
+	public StateSequence addLast(State[] states) {
 		if(states == null)
 			return new StateSequence(states);
 		
@@ -71,10 +84,10 @@ public class StateSequence implements Sequence<State> {
 	}
 	
 	@Override
-	public StateSequence add(Sequence<State> sequence) {
+	public StateSequence addLast(Sequence<State> sequence) {
 		State[] states = sequence.toArray();
 		
-		return add(states);
+		return addLast(states);
 	}
 
 	@Override

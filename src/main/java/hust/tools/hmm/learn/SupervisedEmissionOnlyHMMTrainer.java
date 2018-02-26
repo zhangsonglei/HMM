@@ -8,6 +8,7 @@ import hust.tools.hmm.model.HMModel;
 import hust.tools.hmm.model.HMModelBasedMap;
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
+import hust.tools.hmm.utils.CommonUtils;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
 
@@ -84,7 +85,7 @@ public class SupervisedEmissionOnlyHMMTrainer extends AbstractSupervisedHMMTrain
 				emissionProbEntry.put(observation, Math.log10(prob));
 			}
 
-			emissionProbEntry.put(UNKNOWN, Math.log10(delta / (M + N * delta)));
+			emissionProbEntry.put(CommonUtils.UNKNOWN, Math.log10(delta / (M + N * delta)));
 			emissionMatrix.put(state, emissionProbEntry);
 		}//end while
 	}

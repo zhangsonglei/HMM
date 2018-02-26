@@ -22,13 +22,11 @@ public class EvaluatePrintHTML {
     
 	private HMM model;
 	private List<SupervisedHMMSample> samples;
-	private int order;
 	private HashMap<String, Integer> tagCount;
 	
-	public EvaluatePrintHTML(HMM model, List<SupervisedHMMSample> samples, int order) {
+	public EvaluatePrintHTML(HMM model, List<SupervisedHMMSample> samples) {
 		this.model = model;
 		this.samples = samples;
-		this.order = order;
 		tagCount = new HashMap<>();
 	}
 	
@@ -43,7 +41,7 @@ public class EvaluatePrintHTML {
             	StateSequence refStateSeuence = sample.getStateSequence();
     			ObservationSequence wordSequence = sample.getObservationSequence();
     			
-    			StateSequence preStateSeuence = model.bestStateSeqence(wordSequence, order);
+    			StateSequence preStateSeuence = model.bestStateSeqence(wordSequence);
     			
     			String testPOS = null;
                 String outputPOS = null;

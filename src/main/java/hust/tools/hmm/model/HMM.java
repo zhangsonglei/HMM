@@ -18,21 +18,21 @@ public interface HMM {
 	 * @param observation	观测状态序列
 	 * @return				最优隐藏序列
 	 */
-	public StateSequence bestStateSeqence(ObservationSequence observations, int order);
+	public StateSequence bestStateSeqence(ObservationSequence observations);
 	
 	/**
 	 * 返回给定观测状态序列的最大似然估计
 	 * @param observation	观测状态序列
 	 * @return	最大似然估计
 	 */
-	public double getProb(ObservationSequence observations, int order);
+	public double getProb(ObservationSequence observations);
 	
 	/**
 	 * 返回给定观测状态序列和隐藏状态序列在模型中的概率
 	 * @param observation	观测状态序列
-	 * @param hidden		隐藏状态序列
+	 * @param states		隐藏状态序列
 	 * @return
 	 */
-	public double getProb(ObservationSequence observations, StateSequence states, int order);
+	public double getProb(ObservationSequence observations, StateSequence states);
 	
 }
