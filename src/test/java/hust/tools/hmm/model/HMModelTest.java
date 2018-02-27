@@ -84,7 +84,7 @@ public class HMModelTest {
 		State[] states = new StringState[]{new StringState("3")};
 		StateSequence start = new StateSequence(states);
 		State target = new StringState("4");
-		assertEquals(Math.log10(3.0/11), model.transitionLogProb(start, target), 0.01);
+		assertEquals(Math.log10(Double.MIN_VALUE), model.transitionLogProb(start, target), 0.01);
 		
 		states = new StringState[]{new StringState("5"), new StringState("2"), new StringState("1")};
 		start = new StateSequence(states);

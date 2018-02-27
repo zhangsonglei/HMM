@@ -130,10 +130,10 @@ public class TransitionAndEmissionCounter {
 		
 		//统计转移计数
 		for(int i = 2; i <= order + 1; i++) {//遍历n元的阶数，将隐藏序列切分成不同阶的n元序列
-			List<State[]> list = CommonUtils.generate(stateSequence, i);
+			List<StateSequence> list = CommonUtils.generate(stateSequence, i);
 			
 			for(int j = 0; j < list.size(); j++) {
-				StateSequence transition = new StateSequence(list.get(j));
+				StateSequence transition = list.get(j);
 				if(j == 0 && i <= order){
 					add(transition);
 					transition = transition.addFirst(CommonUtils.SOS);

@@ -107,30 +107,30 @@ public class HMMWithViterbiTest {
 		for(double prob : probs)
 			totalProb += prob;
 		
-		assertEquals(totalProb, model.getProb(sequence), 0.00000000000000001);
+		assertEquals(totalProb, model.getLogProb(sequence), 0.00000000000000001);
 		
 		State[] states = new StringState[]{new StringState("a"), new StringState("a"), new StringState("a")};
-		assertEquals(probs[0], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
+		assertEquals(Math.log10(probs[0]), model.getLogProb(sequence, new StateSequence(states)), 0.000000000000001);
 		
 		states = new StringState[]{new StringState("a"), new StringState("a"), new StringState("b")};
-		assertEquals(probs[1], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
+		assertEquals(Math.log10(probs[1]), model.getLogProb(sequence, new StateSequence(states)), 0.00000000000000001);
 		
 		states = new StringState[]{new StringState("a"), new StringState("b"), new StringState("a")};
-		assertEquals(probs[2], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
+		assertEquals(Math.log10(probs[2]), model.getLogProb(sequence, new StateSequence(states)), 0.000000000000001);
 		
 		states = new StringState[]{new StringState("a"), new StringState("b"), new StringState("b")};
-		assertEquals(probs[3], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
+		assertEquals(Math.log10(probs[3]), model.getLogProb(sequence, new StateSequence(states)), 0.00000000000000001);
 		
 		states = new StringState[]{new StringState("b"), new StringState("a"), new StringState("b")};
-		assertEquals(probs[4], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
+		assertEquals(Math.log10(probs[4]), model.getLogProb(sequence, new StateSequence(states)), 0.000000000000001);
 		
 		states = new StringState[]{new StringState("b"), new StringState("b"), new StringState("a")};
-		assertEquals(probs[5], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
+		assertEquals(Math.log10(probs[5]), model.getLogProb(sequence, new StateSequence(states)), 0.00000000000000001);
 		
 		states = new StringState[]{new StringState("b"), new StringState("a"), new StringState("a")};
-		assertEquals(probs[6], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
+		assertEquals(Math.log10(probs[6]), model.getLogProb(sequence, new StateSequence(states)), 0.00000000000000001);
 		
 		states = new StringState[]{new StringState("b"), new StringState("b"), new StringState("b")};
-		assertEquals(probs[7], model.getProb(sequence, new StateSequence(states)), 0.00000000000000001);
+		assertEquals(Math.log10(probs[7]), model.getLogProb(sequence, new StateSequence(states)), 0.000000000000001);
 	}
 }

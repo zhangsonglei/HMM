@@ -24,7 +24,7 @@ public class HMMWithViterbi implements HMM {
 	private double[][] delta;
 	
 	/**
-	 * 记忆回退路径，psi[t][i]记录该路径上状态si（在t-1时刻）的前一个状态
+	 * 记忆回退路径，psi[t][i]记录t时刻状态为i的所有单个路径中概率最大的路径第t-1时刻的结点
 	 */
 	private int[][] psi;
 	
@@ -41,21 +41,21 @@ public class HMMWithViterbi implements HMM {
 	public HMMWithViterbi(HMModel model) {
 		this.model = model;
 		if(model.getOrder() != 1)
-			throw new IllegalArgumentException("");
+			throw new IllegalArgumentException("不支持高阶HMM解码");
 	}
 
 	@Override
-	public double getProb(ObservationSequence observations, StateSequence states) {
+	public double getLogProb(ObservationSequence observations, StateSequence states) {
 		double logProb = model.getLogPi(states.get(0)) + model.emissionLogProb(states.get(0), observations.get(0));
 		for(int i = 1; i < states.length(); i++) 
 			logProb += model.transitionLogProb(new StateSequence(states.get(i - 1)), states.get(i)) +
 					model.emissionLogProb(states.get(i), observations.get(i));
 		
-		return Math.pow(10, logProb);
+		return logProb;
 	}
 
 	@Override
-	public double getProb(ObservationSequence observations) {
+	public double getLogProb(ObservationSequence observations) {
 		ForwardAlgorithm algorithm = new ForwardAlgorithm(model, observations);
 		
 		return algorithm.getProb();
@@ -128,7 +128,7 @@ public class HMMWithViterbi implements HMM {
 	 */
 	private void viterbiStep(int observation, int t, int j) {
 		double maxDelta = Math.log10(Double.MIN_VALUE);
-		int max_psi = 0;//最短路径
+		int max_psi = 0;//概率最大的路径t-1时刻的结点
 		
 		for(int i = 0; i < model.statesCount(); i++) {
 			double currentDelta = delta[t - 1][i] + model.transitionLogProb(new int[]{i}, j);

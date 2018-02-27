@@ -19,6 +19,7 @@ import hust.tools.hmm.learn.SupervisedRevEmissionHMMTrainer;
 import hust.tools.hmm.learn.SupervisedWittenBellHMMTrainer;
 import hust.tools.hmm.learn.TransitionAndEmissionCounter;
 import hust.tools.hmm.model.HMM;
+import hust.tools.hmm.model.HMMWithAStar;
 import hust.tools.hmm.model.HMMWithViterbi;
 import hust.tools.hmm.model.HMModel;
 import hust.tools.hmm.stream.SupervisedHMMSample;
@@ -111,7 +112,10 @@ public class TrainAndEvaluate {
 	 * @param testSamples	测试样本（带词性）
 	 */
 	public void evaluate(HMModel hmModel, List<SupervisedHMMSample> testSamples) {
-		HMM hmm = new HMMWithViterbi(hmModel);
+		HMM hmm = null;
+//		hmm = new HMMWithViterbi(hmModel);
+		hmm = new HMMWithAStar(hmModel);
+		
 		Observation[] observations = hmModel.getObservations();
 		HashSet<String> dict = new HashSet<>();
 		for(Observation observation : observations)

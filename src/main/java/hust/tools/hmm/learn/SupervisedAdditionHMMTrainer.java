@@ -156,7 +156,28 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 		    if(start.length() != order && !start.get(0).equals(CommonUtils.SOS))
 		    	it.remove();
 		}
+		
+//		try {
+//			outputTransition();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 	}
+	
+//	private void outputTransition() throws IOException {
+//		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(new File("transition.txt")));
+//		BufferedWriter bWriter = new BufferedWriter(writer);
+//		for(Entry<StateSequence, TransitionProbEntry> entry : transitionMatrix.entrySet()) {
+//			Iterator<Entry<State, Double>> entryIt = entry.getValue().entryIterator();
+//			while(entryIt.hasNext()) {
+//				Entry<State, Double> e = entryIt.next();
+//				bWriter.write(entry.getKey() + "\t" + e.getKey() + " " + e.getValue());
+//				bWriter.newLine();
+//			}			
+//		}
+//		bWriter.flush();
+//		bWriter.close();
+//	}
 	
 	/**
 	 * 采用加1平滑方式计算发射概率矩阵:p=(C+1)/(M+N)（已确保概率之和为1，不需要归一化）

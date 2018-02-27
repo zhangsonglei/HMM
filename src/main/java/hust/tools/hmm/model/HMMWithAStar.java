@@ -12,13 +12,13 @@ import hust.tools.hmm.utils.StateSequence;
 
 /**
  *<ul>
- *<li>Description: 基于beamSearch和前向算法的的HMM，用于1阶HMM
+ *<li>Description: 基于A*算法和前向算法的的HMM
  *<li>Company: HUST
  *<li>@author Sonly
  *<li>Date: 2018年1月15日
  *</ul>
  */
-public class HMMWithBeamSearch implements HMM {
+public class HMMWithAStar implements HMM {
 		
 	/**
 	 * HMM模型
@@ -26,34 +26,52 @@ public class HMMWithBeamSearch implements HMM {
 	private HMModel model;
 	
 	private int order;
-	
-	private int beamSize;
-	
-	public HMMWithBeamSearch(HMModel model, int beamSize) {
+		
+	public HMMWithAStar(HMModel model) {
 		this.model = model;
-		this.order = model.getOrder();
-		this.beamSize = beamSize;
+		order = model.getOrder();
 	}
 
 	@Override
-	public double getProb(ObservationSequence observations, StateSequence states) {
+	public double getLogProb(ObservationSequence observations, StateSequence states) {
+//		System.out.println(observations+"\n"+states);
 		if(observations.length() == 0 || states.length() == 0)
-			throw new IllegalArgumentException("状态序列或观测序列不能为空");
+			throw new IllegalArgumentException("状态序列或观测序列不能为空。");
+		else if(observations.length() != states.length())
+			throw new IllegalArgumentException("状态序列或观测序列长度不同。");
 		
+		//初始转移概率
 		double logProb = model.getLogPi(states.get(0)) + model.emissionLogProb(states.get(0), observations.get(0));
-		List<StateSequence> list = CommonUtils.spilt(states, order);
-		for(int i = 1; i < list.size(); i++) {
-			StateSequence transition = list.get(i);
+
+		/**
+		 * 计算高阶起始部分概率
+		 * <sos>a->b,<sos>ab->c,<sos>abc->d,...
+		 */
+		StateSequence startSeq = new StateSequence(CommonUtils.SOS);
+		for(int i = 1; i < order && i < observations.length(); i++) {
 			State target = states.get(i);
-			logProb += model.transitionLogProb(transition.remove(transition.length() - 1), target) +
-					model.emissionLogProb(target, observations.get(i));
+			startSeq = startSeq.addLast(states.get(i - 1));
+			logProb += model.transitionLogProb(startSeq, states.get(i)) + model.emissionLogProb(target, observations.get(i));
+//			System.out.println("句首"+logProb);
 		}
 		
-		return Math.pow(10, logProb);
+		if(states.length() > order) {
+			List<StateSequence> list = CommonUtils.generate(states, order + 1);
+			for(int i = 0; i < list.size(); i++) {
+				StateSequence transition = list.get(i);
+				State target = transition.get(order);
+				logProb += model.transitionLogProb(transition.remove(order), target) +
+						model.emissionLogProb(target, observations.get(i + order));
+//				System.out.println("句中"+logProb);
+			}
+		}
+		
+//		System.out.println(logProb);
+		return logProb;
 	}
 
 	@Override
-	public double getProb(ObservationSequence observations) {
+	public double getLogProb(ObservationSequence observations) {
 		ForwardAlgorithm algorithm = new ForwardAlgorithm(model, observations);
 		
 		return algorithm.getProb();
@@ -61,40 +79,39 @@ public class HMMWithBeamSearch implements HMM {
 	
 	@Override
 	public StateSequence bestStateSeqence(ObservationSequence observationSequence) {
-		List<StateSequence> bestK = beamSearch(observationSequence, beamSize, order, 1);
+		List<StateSequence> bestK = bestKStateSeqences(observationSequence, 5);
 		
 		return bestK.get(0);
 	}
-
+	
 	/**
-	 * viterbi算法计算给定观测序列的最优隐藏序列
+	 * A*算法计算给定观测序列的最优的k个隐藏序列
 	 * @param observationSequence	给定的观测序列
 	 */
-	private List<StateSequence> beamSearch(ObservationSequence observationSequence, int beamSize, int order, int k) {
-		Queue<StateSequenceWithScore> prev = new PriorityQueue<>(beamSize);
-	    Queue<StateSequenceWithScore> next = new PriorityQueue<>(beamSize);
+	public List<StateSequence> bestKStateSeqences(ObservationSequence observationSequence, int k) {
+		Queue<StateSequenceWithScore> prev = new PriorityQueue<>(k);
+	    Queue<StateSequenceWithScore> next = new PriorityQueue<>(k);
 	    Queue<StateSequenceWithScore> tmp;
 	    
-	    StateSequence states = new StateSequence();
+	    
 	    ObservationSequence observations = new ObservationSequence(observationSequence.get(0));
 	    for(int i = 0; i < model.statesCount(); i++) {
-	    	State candState = model.getState(i);
-	    	states = states.addLast(candState);
-	    	double score = getProb(observations, states);
+	    	StateSequence states = new StateSequence(model.getState(i));
+	    	double score = getLogProb(observations, states);
 	    	prev.add(new StateSequenceWithScore(states, score));
 	    }
 	    
 	    for(int t = 1; t < observationSequence.length(); t++) {
 	    	observations = observations.addLast(observationSequence.get(t));
 	    	
-	    	int sz = Math.min(beamSize, prev.size());
+	    	int sz = Math.min(k, prev.size());
 	    	for(int sc = 0; prev.size() > 0 && sc < sz; sc++) {
 		    	StateSequenceWithScore top = prev.remove();
 		    	
 		    	for(int i = 0; i < model.statesCount(); i++) {
 		    		State candState = model.getState(i);
 		    		StateSequence newStateSequence = top.getStateSequence().addLast(candState);
-		    		double score = getProb(observations, newStateSequence);
+		    		double score = getLogProb(observations, newStateSequence);
 		    		
 		    		next.add(new StateSequenceWithScore(newStateSequence, score));
 		    	}

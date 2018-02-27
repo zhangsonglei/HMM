@@ -17,7 +17,7 @@ public class POSTagger {
 //		file = new File("E:\\JOB\\hmm\\data\\conll.pos");
 		file = new File("E:\\JOB\\hmm\\data\\pos.train");
 		samples = TrainCorpusReader.read(file);
-		int order = 1;
+		int order = 2;
 		
 		TrainAndEvaluate trainAndEvaluate = new TrainAndEvaluate(samples, order, "add");
 		trainAndEvaluate.crossValidation(order, 10);
