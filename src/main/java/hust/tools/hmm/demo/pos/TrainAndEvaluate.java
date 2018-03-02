@@ -62,9 +62,12 @@ public class TrainAndEvaluate {
 				flag++;
 			}
 			System.out.println("totalSize = " + samples.size() + "\ttrainSize = " + trainSamples.size() + "\ttestSize = " + testSamples.size());
-			
+			long start = System.currentTimeMillis();
 			HMModel model = train(trainSamples);
+			long train = System.currentTimeMillis();
 			evaluate(model, testSamples);
+			long eval = System.currentTimeMillis();
+			System.out.println("训练时间：" +(train - start)/1000.0 +"s\t评估时间："+(eval - train)/1000.0+"s");
 		}
 		
 		System.out.println("cross validate over.");
@@ -113,8 +116,8 @@ public class TrainAndEvaluate {
 	 */
 	public void evaluate(HMModel hmModel, List<SupervisedHMMSample> testSamples) {
 		HMM hmm = null;
-//		hmm = new HMMWithViterbi(hmModel);
-		hmm = new HMMWithAStar(hmModel);
+		hmm = new HMMWithViterbi(hmModel);
+//		hmm = new HMMWithAStar(hmModel);
 		
 		Observation[] observations = hmModel.getObservations();
 		HashSet<String> dict = new HashSet<>();

@@ -34,7 +34,6 @@ public class HMMWithAStar implements HMM {
 
 	@Override
 	public double getLogProb(ObservationSequence observations, StateSequence states) {
-//		System.out.println(observations+"\n"+states);
 		if(observations.length() == 0 || states.length() == 0)
 			throw new IllegalArgumentException("状态序列或观测序列不能为空。");
 		else if(observations.length() != states.length())
@@ -52,7 +51,6 @@ public class HMMWithAStar implements HMM {
 			State target = states.get(i);
 			startSeq = startSeq.addLast(states.get(i - 1));
 			logProb += model.transitionLogProb(startSeq, states.get(i)) + model.emissionLogProb(target, observations.get(i));
-//			System.out.println("句首"+logProb);
 		}
 		
 		if(states.length() > order) {
@@ -62,11 +60,9 @@ public class HMMWithAStar implements HMM {
 				State target = transition.get(order);
 				logProb += model.transitionLogProb(transition.remove(order), target) +
 						model.emissionLogProb(target, observations.get(i + order));
-//				System.out.println("句中"+logProb);
 			}
 		}
 		
-//		System.out.println(logProb);
 		return logProb;
 	}
 
@@ -92,7 +88,6 @@ public class HMMWithAStar implements HMM {
 		Queue<StateSequenceWithScore> prev = new PriorityQueue<>(k);
 	    Queue<StateSequenceWithScore> next = new PriorityQueue<>(k);
 	    Queue<StateSequenceWithScore> tmp;
-	    
 	    
 	    ObservationSequence observations = new ObservationSequence(observationSequence.get(0));
 	    for(int i = 0; i < model.statesCount(); i++) {

@@ -19,13 +19,13 @@ import hust.tools.hmm.utils.StringState;
 
 /**
  *<ul>
- *<li>Description: 基于Viterbi解码的HMM模型单元测试
+ *<li>Description: 基于AStar解码的HMM模型单元测试
  *<li>Company: HUST
  *<li>@author Sonly
- *<li>Date: 2018年1月17日
+ *<li>Date: 2018年2月27日
  *</ul>
  */
-public class HMMWithViterbiTest {
+public class HMMWithAStarTest {
 
 	private int order;
 	private HMM model;
@@ -77,7 +77,7 @@ public class HMMWithViterbiTest {
 		samples.add(new SupervisedHMMSample(stateSequence, observationSequence));
 		
 		SupervisedAdditionHMMTrainer learner = new SupervisedAdditionHMMTrainer(samples, order, 1.0);
-		model = new HMMWithViterbi(learner.train());
+		model = new HMMWithAStar(learner.train());
 		
 		Observation[] testObservaitons = new StringObservation[]{
 				new StringObservation("2"),

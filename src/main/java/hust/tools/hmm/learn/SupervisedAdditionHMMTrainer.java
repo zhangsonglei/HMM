@@ -196,11 +196,11 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 			while(observationsIterator.hasNext()) {//计算当前状态的所有发射概率
 				Observation observation = observationsIterator.next();
 				int C = counter.getEmissionCount(state, observation);//当前发射的数量
-				double prob = (C + delta) / (M + N * delta);
+				double prob = (C + delta) / (M + N * delta + delta);
 				emissionProbEntry.put(observation, Math.log10(prob));
 			}
 
-			emissionProbEntry.put(CommonUtils.UNKNOWN, Math.log10(delta / (M + N * delta)));
+			emissionProbEntry.put(CommonUtils.UNKNOWN, Math.log10(delta / (M + N * delta + delta)));
 			emissionMatrix.put(state, emissionProbEntry);
 		}//end while
 	}
