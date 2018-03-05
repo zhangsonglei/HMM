@@ -116,8 +116,8 @@ public class TrainAndEvaluate {
 	 */
 	public void evaluate(HMModel hmModel, List<SupervisedHMMSample> testSamples) {
 		HMM hmm = null;
-		hmm = new HMMWithViterbi(hmModel);
-//		hmm = new HMMWithAStar(hmModel);
+//		hmm = new HMMWithViterbi(hmModel);
+		hmm = new HMMWithAStar(hmModel);
 		
 		Observation[] observations = hmModel.getObservations();
 		HashSet<String> dict = new HashSet<>();

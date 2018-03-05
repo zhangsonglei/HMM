@@ -56,8 +56,8 @@ public class HMMWithViterbi implements HMM {
 
 	@Override
 	public double getLogProb(ObservationSequence observations) {
-//		ForwardAlgorithm algorithm = new ForwardAlgorithm(model, observations);
-		BackwardAlgorithm algorithm = new BackwardAlgorithm(model, observations);
+		ForwardAlgorithm algorithm = new ForwardAlgorithm(model, observations);
+//		BackwardAlgorithm algorithm = new BackwardAlgorithm(model, observations);
 		return algorithm.getProb();
 	}
 	

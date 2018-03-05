@@ -6,9 +6,11 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 import hust.tools.hmm.utils.CommonUtils;
+import hust.tools.hmm.utils.DefaultStateSequenceValidator;
 import hust.tools.hmm.utils.ObservationSequence;
 import hust.tools.hmm.utils.State;
 import hust.tools.hmm.utils.StateSequence;
+import hust.tools.hmm.utils.StateSequenceValidator;
 
 /**
  *<ul>
@@ -26,9 +28,19 @@ public class HMMWithAStar implements HMM {
 	private HMModel model;
 	
 	private int order;
+	
+	/**
+	 * 序列合法性验证
+	 */
+	private StateSequenceValidator validator;
 		
 	public HMMWithAStar(HMModel model) {
+		this(model, new DefaultStateSequenceValidator());
+	}
+	
+	public HMMWithAStar(HMModel model, StateSequenceValidator validator) {
 		this.model = model;
+		this.validator = validator;
 		order = model.getOrder();
 	}
 
@@ -68,7 +80,8 @@ public class HMMWithAStar implements HMM {
 
 	@Override
 	public double getLogProb(ObservationSequence observations) {
-		ForwardAlgorithm algorithm = new ForwardAlgorithm(model, observations);
+//		ForwardAlgorithm algorithm = new ForwardAlgorithm(model, observations);
+		BackwardAlgorithm algorithm = new BackwardAlgorithm(model, observations);
 		
 		return algorithm.getProb();
 	}
@@ -101,21 +114,24 @@ public class HMMWithAStar implements HMM {
 	    	
 	    	int sz = Math.min(k, prev.size());
 	    	for(int sc = 0; prev.size() > 0 && sc < sz; sc++) {
-		    	StateSequenceWithScore top = prev.remove();
+	    		StateSequenceWithScore top = prev.remove();
+	    		StateSequence sequence = top.getStateSequence();
 		    	
-		    	for(int i = 0; i < model.statesCount(); i++) {
-		    		State candState = model.getState(i);
-		    		StateSequence newStateSequence = top.getStateSequence().addLast(candState);
-		    		double score = getLogProb(observations, newStateSequence);
-		    		
-		    		next.add(new StateSequenceWithScore(newStateSequence, score));
-		    	}
-		    }
+	    		for(int i = 0; i < model.statesCount(); i++) {
+	    			State candState = model.getState(i);
+	    			if(validator.validStateSequence(t, observationSequence, sequence, candState)) {
+	    				StateSequence newStateSequence = sequence.addLast(candState);
+	    				double score = getLogProb(observations, newStateSequence);
+			    		
+	    				next.add(new StateSequenceWithScore(newStateSequence, score));
+	    			}
+	    		}
+	    	}
 	    	
-	    	 prev.clear();
-	    	 tmp = prev;
-	    	 prev = next;
-	    	 next = tmp;
+	    	prev.clear();
+	    	tmp = prev;
+	    	prev = next;
+	    	next = tmp;
 	    }
 	    	    
 	    //选取得分最高的bestSize个候选句子
