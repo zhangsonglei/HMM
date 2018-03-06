@@ -11,20 +11,17 @@ import hust.tools.hmm.model.HMModel;
  *</ul>
  */
 public abstract class AbstractUnSupervisedHMMTrainer implements HMMTrainer {
-	
-	protected int order;
-	
-	protected final static int DEFAULT_ORDER = 1;
-	
+		
 	protected HMModel model;
 	
 	public AbstractUnSupervisedHMMTrainer() {
 		
 	}
 	
-	public AbstractUnSupervisedHMMTrainer(HMModel model, int order) {
+	public AbstractUnSupervisedHMMTrainer(HMModel model) {
 		this.model = model;
-		this.order = order > 0 ? order : DEFAULT_ORDER;
+		if(model.getOrder() != 1)
+			throw new IllegalArgumentException("非监督训练目前只支持1阶HMM");
 	}
 
 	@Override

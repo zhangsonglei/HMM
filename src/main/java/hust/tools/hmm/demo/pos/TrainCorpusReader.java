@@ -9,12 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import hust.tools.hmm.stream.SupervisedHMMSample;
+import hust.tools.hmm.stream.UnSupervisedHMMSample;
 import hust.tools.hmm.utils.StringObservation;
 import hust.tools.hmm.utils.StringState;
 
 public class TrainCorpusReader {
 
-	public static List<SupervisedHMMSample> read(File file) throws IOException {
+	public static List<SupervisedHMMSample> readSupervisedHMMSamples(File file) throws IOException {
 		List<SupervisedHMMSample> samples = new ArrayList<>();
 		InputStreamReader ireader = new InputStreamReader(new FileInputStream(file), "utf8");
 		BufferedReader reader = new BufferedReader(ireader);
@@ -28,6 +29,29 @@ public class TrainCorpusReader {
 				
 				for(int i = 0; i < wordTags.length; i++)
 					sample.add(new StringState(wordTags[i].split("/")[1]), new StringObservation(wordTags[i].split("/")[0]));
+				
+				samples.add(sample);
+			}
+		}
+		reader.close();
+		
+		return samples;
+	}
+	
+	public static List<UnSupervisedHMMSample> readUnSupervisedHMMSamples(File file) throws IOException {
+		List<UnSupervisedHMMSample> samples = new ArrayList<>();
+		InputStreamReader ireader = new InputStreamReader(new FileInputStream(file), "utf8");
+		BufferedReader reader = new BufferedReader(ireader);
+		
+		String line = null;
+		while((line = reader.readLine()) != null) {
+			line = line.trim();
+			if(!line.equals("")) {
+				String[] wordTags = line.split("\\s+");
+				UnSupervisedHMMSample sample = new UnSupervisedHMMSample();
+				
+				for(int i = 0; i < wordTags.length; i++)
+					sample.add(new StringObservation(wordTags[i].split("/")[0]));
 				
 				samples.add(sample);
 			}

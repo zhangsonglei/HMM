@@ -9,19 +9,20 @@ import hust.tools.hmm.stream.SupervisedHMMSample;
 
 public class POSTagger {
 	
-	private static File file;
-	private static List<SupervisedHMMSample> samples;
-	
+	private static File file;	
+	private static final int order = 1;
+	private static boolean isSupervised;
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException {
 		file = new File("E:\\JOB\\hmm\\data\\conll.pos");
 //		file = new File("E:\\JOB\\hmm\\data\\pos.train");
-		samples = TrainCorpusReader.read(file);
-		int order = 1;
 		
-		TrainAndEvaluate trainAndEvaluate = new TrainAndEvaluate(samples, order, "add");
-		trainAndEvaluate.crossValidation(order, 10);
-
+		isSupervised = false;
+		
+		List<SupervisedHMMSample> samples = TrainCorpusReader.readSupervisedHMMSamples(file);
+		TrainAndEvaluate trainAndEvaluate = new TrainAndEvaluate(samples, order);
+		trainAndEvaluate.crossValidation(order, 10, isSupervised);
+		
 //		List<SupervisedHMMSample> trainSamples = new ArrayList<>();
 //		List<SupervisedHMMSample> testSamples = new ArrayList<>();
 //		int i = 0;

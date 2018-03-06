@@ -18,23 +18,47 @@ import hust.tools.hmm.learn.SupervisedEmissionOnlyHMMTrainer;
 import hust.tools.hmm.learn.SupervisedRevEmissionHMMTrainer;
 import hust.tools.hmm.learn.SupervisedWittenBellHMMTrainer;
 import hust.tools.hmm.learn.TransitionAndEmissionCounter;
+import hust.tools.hmm.learn.UnSupervisedBaumWelchHMMTrainer;
 import hust.tools.hmm.model.HMM;
 import hust.tools.hmm.model.HMMWithAStar;
-import hust.tools.hmm.model.HMMWithViterbi;
 import hust.tools.hmm.model.HMModel;
+import hust.tools.hmm.model.HMModelByRandom;
 import hust.tools.hmm.stream.SupervisedHMMSample;
+import hust.tools.hmm.stream.UnSupervisedHMMSample;
 import hust.tools.hmm.utils.Observation;
+import hust.tools.hmm.utils.ObservationSequence;
+import hust.tools.hmm.utils.State;
+import hust.tools.hmm.utils.StateSequence;
 
 public class TrainAndEvaluate {
 
-	private int order;
-	private List<SupervisedHMMSample> samples;
-	private String smooth;
+	private final int DEFAULT_ORDER = 1;
+	private final String DEFAULT_SMOOTH = "ADD";
 	
-	public TrainAndEvaluate(List<SupervisedHMMSample> samples, int order, String smooth) {
-		this.samples = samples;
-		this.order = order;
+	private int order;
+	private String smooth;
+	private List<SupervisedHMMSample> supervisedSamples;
+	
+	
+	public TrainAndEvaluate(List<SupervisedHMMSample> supervisedSamples, int order, String smooth) {
+		this.supervisedSamples = supervisedSamples;
+		this.order = order > 0 ? order : DEFAULT_ORDER;
 		this.smooth = smooth;
+	}
+	public TrainAndEvaluate(List<SupervisedHMMSample> supervisedSamples, String smooth) {
+		this.supervisedSamples = supervisedSamples;
+		this.order = DEFAULT_ORDER;
+		this.smooth = smooth;
+	}
+	public TrainAndEvaluate(List<SupervisedHMMSample> supervisedSamples, int order) {
+		this.supervisedSamples = supervisedSamples;
+		this.order = order > 0 ? order : DEFAULT_ORDER;
+		this.smooth = DEFAULT_SMOOTH;
+	}
+	public TrainAndEvaluate(List<SupervisedHMMSample> supervisedSamples) {
+		this.supervisedSamples = supervisedSamples;
+		this.order = DEFAULT_ORDER;
+		this.smooth = DEFAULT_SMOOTH;
 	}
 	
 	/**
@@ -43,7 +67,7 @@ public class TrainAndEvaluate {
 	 * @param folds		交叉验证折数
 	 * @throws IOException
 	 */
-	public void crossValidation(int order, int folds) throws IOException {
+	public void crossValidation(int order, int folds, boolean isSupervised) throws IOException {
 		if(folds < 1)
 			throw new IllegalArgumentException("折数不能小于1：" + folds);
 		System.out.println("cross validating...");
@@ -53,7 +77,7 @@ public class TrainAndEvaluate {
 			List<SupervisedHMMSample> testSamples = new ArrayList<>();
 			int flag = 0;
 			System.out.println("\nRunning : fold-" + (i + 1));
-			for(SupervisedHMMSample sample : samples) {
+			for(SupervisedHMMSample sample : supervisedSamples) {
 				if(flag % folds == i)
 					testSamples.add(sample);
 				else
@@ -61,9 +85,9 @@ public class TrainAndEvaluate {
 				
 				flag++;
 			}
-			System.out.println("totalSize = " + samples.size() + "\ttrainSize = " + trainSamples.size() + "\ttestSize = " + testSamples.size());
+			System.out.println("totalSize = " + supervisedSamples.size() + "\ttrainSize = " + trainSamples.size() + "\ttestSize = " + testSamples.size());
 			long start = System.currentTimeMillis();
-			HMModel model = train(trainSamples);
+			HMModel model = train(trainSamples, isSupervised);
 			long train = System.currentTimeMillis();
 			evaluate(model, testSamples);
 			long eval = System.currentTimeMillis();
@@ -79,34 +103,58 @@ public class TrainAndEvaluate {
 	 * @return				HMM模型
 	 * @throws IOException
 	 */
-	public HMModel train(List<SupervisedHMMSample> trainsamples) throws IOException {
-		TransitionAndEmissionCounter counter = new TransitionAndEmissionCounter(trainsamples, order);
+	public HMModel train(List<SupervisedHMMSample> trainsamples, boolean isSupervised) throws IOException {
+		HMMTrainer trainer = null;
 		
-		HMMTrainer learner = null;
-		switch (smooth.toUpperCase()) {
-		case "ML":
-			learner = new SupervisedMLHMMTrainer(counter);
-			break;
-		case "ADD":
-			learner = new SupervisedAdditionHMMTrainer(counter);
-			break;
-		case "WB":
-			learner = new SupervisedWittenBellHMMTrainer(counter);
-			break;
-		case "EO":
-			learner = new SupervisedEmissionOnlyHMMTrainer(counter);
-			break;
-		case "RE":
-			learner = new SupervisedRevEmissionHMMTrainer(counter);
-			break;
-		case "KATZ":
-			learner = new SupervisedGoodTuringHMMTrainer(counter);
-			break;
-		default:
-			throw new IllegalArgumentException("错误的平滑方法：" + smooth);
-		}
+		if(isSupervised) {
+			TransitionAndEmissionCounter counter = new TransitionAndEmissionCounter(trainsamples, order);
+			
+			switch (smooth.toUpperCase()) {
+			case "ML":
+				trainer = new SupervisedMLHMMTrainer(counter);
+				break;
+			case "ADD":
+				trainer = new SupervisedAdditionHMMTrainer(counter);
+				break;
+			case "WB":
+				trainer = new SupervisedWittenBellHMMTrainer(counter);
+				break;
+			case "EO":
+				trainer = new SupervisedEmissionOnlyHMMTrainer(counter);
+				break;
+			case "RE":
+				trainer = new SupervisedRevEmissionHMMTrainer(counter);
+				break;
+			case "KATZ":
+				trainer = new SupervisedGoodTuringHMMTrainer(counter);
+				break;
+			default:
+				throw new IllegalArgumentException("错误的平滑方法：" + smooth);
+			}
+		}else {
+			HashSet<State> statesSet = new HashSet<>();
+			HashSet<Observation> observationsSet = new HashSet<>();
+			
+			List<UnSupervisedHMMSample> trainSamples = new ArrayList<>();
+			for(SupervisedHMMSample sample : trainsamples) {
+				ObservationSequence observationSequence = sample.getObservationSequence();
+				trainSamples.add(new UnSupervisedHMMSample(observationSequence));
+				
+				StateSequence stateSequence = sample.getStateSequence();
+				for(int i = 0; i < stateSequence.length(); i++) {
+					statesSet.add(stateSequence.get(i));
+					observationsSet.add(observationSequence.get(i));
+				}
+			}
+			
+			System.out.println(statesSet.size() +"\t"+observationsSet.size());
+			trainer = new HMModelByRandom(observationsSet, statesSet, 3);
+			HMModel model = trainer.train();
+			trainer = new UnSupervisedBaumWelchHMMTrainer(model, trainSamples);
+			model = trainer.train();
+		}		
 		
-		return learner.train();
+		return trainer.train();
 	}
 	
 	/**
