@@ -14,7 +14,8 @@ public class POSTagger {
 	private static boolean isSupervised;
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException {
-		file = new File("E:\\JOB\\hmm\\data\\conll.pos");
+		file = new File("E:\\JOB\\hmm\\data\\demo.pos");
+//		file = new File("E:\\JOB\\hmm\\data\\conll.pos");
 //		file = new File("E:\\JOB\\hmm\\data\\pos.train");
 		
 		isSupervised = false;

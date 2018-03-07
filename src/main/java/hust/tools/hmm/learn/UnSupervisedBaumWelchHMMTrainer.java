@@ -35,6 +35,7 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 
 	private ConvergencyJudge convergencyJudge;
 	private List<ObservationSequence> trainSequences;
+	private int iteration;
 	
 	/**
 	 * 构造方法
@@ -69,17 +70,17 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		this(initHMModel, trainSequences, new DefaultConvergencyJudge());
 	}
 	
-	
 	@Override
 	public HMModel train() {
 		HMModel preModel, currentModel;
 		currentModel = model;
-		int current_iteration = 0;
+		
 		do{
+			iteration++;
+			System.out.println("第" + iteration + "次迭代");
 			preModel = currentModel;
 			currentModel = iterate(preModel, trainSequences);
-			current_iteration++;
-		}while(convergencyJudge.isConvergency(preModel, currentModel, trainSequences, current_iteration));
+		}while(!convergencyJudge.isConvergency(preModel, currentModel, trainSequences, iteration));
 		
 		return currentModel;
 	}
@@ -99,11 +100,10 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		int N = model.statesCount();
 		int M = model.observationsCount();
 		
-		double[][] beta, alpha;
+		double[][] alpha, beta;//前向概率和后向概率
 		double[][][] allGamma = new double[trainSequences.size()][][];
 		double aijNum[][] = new double[N][N];
 		double aijDen[] = new double[N];
-		double aijDenT[] = new double[N];
 		double[][] tempEmissionMatrixNumerator = new double[N][M];
 		double[][] tempEmissionMatrixDenominator = new double[N][M];		
 		double sum1, sum2;
@@ -122,15 +122,13 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 			int[] observationsIndex = new int[T];
 			for(int i = 0; i < observationsIndex.length; i++)
 				observationsIndex[i] = dict.getIndex(sequence.get(i));
-		
-			double[][][] xi = calcXi(model, sequence.length(), observationsIndex, alpha, beta);
+			
+			double[][][] xi = calcXi(model, observationsIndex, alpha, beta);
 			double[][] gamma = allGamma[no] = calcGamma(model, sequence.length(), alpha, beta);
 			
 			for(int i = 0; i < N; i++) {
-				for(int t = 0; t < T; t++) {
-					aijDenT[i] += gamma[t][i];
-					if(t != T - 1)
-						aijDen[i] += gamma[t][i];
+				for(int t = 0; t < T - 1; t++) {
+					aijDen[i] += gamma[t][i];
 					
 					for(int j = 0; j < N; j++)
 						aijNum[i][j] += xi[t][i][j];
@@ -149,7 +147,7 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 				}
 			}			
 		}
-
+		
 		//计算初始转移概率
 		double sum = 0.0;
 		for(int no = 0; no < sequences.size(); no++) {
@@ -239,17 +237,20 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 	 * @return		gamma
 	 */
 	private double[][] calcGamma(HMModel model, int T, double[][] alpha, double[][] beta) {
+		if(T <= 1)
+			throw new IllegalArgumentException("观测序列太短");
+		
 		int N = model.statesCount();
 		double[][] gamma = new double[T][N];
 		
-		for(int t = 1; t < T; t++) {
+		for(int t = 0; t < T; t++) {
 			double denominator = 0.0;
-			for(int j = 1; j < N; j++) {
+			for(int j = 0; j < N; j++) {
 				gamma[t][j] = Math.pow(10, alpha[t][j]) * Math.pow(10, beta[t][j]);
 				denominator += gamma[t][j];
 			}
 
-			for(int i = 1; i < N; i++) 
+			for(int i = 0; i < N; i++)
 				gamma[t][i] = gamma[t][i] / denominator;
 		}
 		
@@ -266,21 +267,25 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 	 * @param beta			后向概率
 	 * @return				xi
 	 */
-	private double[][][] calcXi(HMModel model, int T, int[] observations, double[][] alpha, double[][] beta) {
+	private double[][][] calcXi(HMModel model, int[] observations, double[][] alpha, double[][] beta) {
+		int T = observations.length;
+		if(T <= 1)
+			throw new IllegalArgumentException("观测序列太短");
+		
 		int N = model.statesCount();
-		double[][][] xi = new double[T][N][N];
+		double[][][] xi = new double[T - 1][N][N];
 
-		for (int t = 1; t < T - 1; t++) {
+		for (int t = 0; t < T - 1; t++) {
 			double denominator = 0.0;
-			for (int i = 1; i < N; i++) {
-				for (int j = 1; j < N; j++) {
+			for (int i = 0; i < N; i++) {
+				for (int j = 0; j < N; j++) {
 					xi[t][i][j] = Math.pow(10, alpha[t][i]) * Math.pow(10, beta[t+1][j]) * Math.pow(10, model.transitionLogProb(new int[]{i}, j)) * Math.pow(10, model.emissionLogProb(j, observations[t+1]));
 					denominator += xi[t][i][j];
 				}
 			}
 			
-			for(int i = 1; i < N; i++) {
-				for(int j = 1; j < N; j++) 
+			for(int i = 0; i < N; i++) {
+				for(int j = 0; j < N; j++)
 					xi[t][i][j]  /= denominator;
 			}
 		}

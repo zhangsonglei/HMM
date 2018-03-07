@@ -147,8 +147,8 @@ public class TrainAndEvaluate {
 				}
 			}
 			
-			System.out.println(statesSet.size() +"\t"+observationsSet.size());
 			trainer = new HMModelByRandom(observationsSet, statesSet, 3);
+			System.out.println("已建立初始模型");
 			HMModel model = trainer.train();
 			trainer = new UnSupervisedBaumWelchHMMTrainer(model, trainSamples);
 			model = trainer.train();
