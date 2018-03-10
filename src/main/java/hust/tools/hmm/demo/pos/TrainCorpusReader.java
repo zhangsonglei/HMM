@@ -25,6 +25,10 @@ public class TrainCorpusReader {
 			line = line.trim();
 			if(!line.equals("")) {
 				String[] wordTags = line.split("\\s+");
+				if(wordTags.length <2) {
+					System.err.println("句子太短，抛弃: " + line);
+					continue;
+				}
 				SupervisedHMMSample sample = new SupervisedHMMSample();
 				
 				for(int i = 0; i < wordTags.length; i++)
@@ -48,6 +52,8 @@ public class TrainCorpusReader {
 			line = line.trim();
 			if(!line.equals("")) {
 				String[] wordTags = line.split("\\s+");
+				if(wordTags.length <2)
+					System.err.println("句子太短，抛弃: " + line);
 				UnSupervisedHMMSample sample = new UnSupervisedHMMSample();
 				
 				for(int i = 0; i < wordTags.length; i++)

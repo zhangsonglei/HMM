@@ -22,15 +22,6 @@ import hust.tools.hmm.utils.State;
  */
 public class SupervisedEmissionOnlyHMMTrainer extends AbstractSupervisedHMMTrainer {
 	
-	/**
-	 * 对初始转移向量和发射概率进行加delta平滑
-	 */
-	private final double delta = 0.01;
-	
-	public SupervisedEmissionOnlyHMMTrainer(TransitionAndEmissionCounter counter) {
-		super(counter);
-	}
-	
 	public SupervisedEmissionOnlyHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
 		super(sampleStream, order);
 	}
@@ -81,11 +72,11 @@ public class SupervisedEmissionOnlyHMMTrainer extends AbstractSupervisedHMMTrain
 			while(observationsIterator.hasNext()) {//计算当前状态的所有发射概率
 				Observation observation = observationsIterator.next();
 				int C = counter.getEmissionCount(state, observation);//当前发射的数量
-				double prob = (C + delta) / (M + N * delta);
+				double prob = (C + DEFAULT_DELTA) / (M + N * DEFAULT_DELTA + DEFAULT_DELTA);
 				emissionProbEntry.put(observation, Math.log10(prob));
 			}
 
-			emissionProbEntry.put(CommonUtils.UNKNOWN, Math.log10(delta / (M + N * delta)));
+			emissionProbEntry.put(CommonUtils.UNKNOWN, Math.log10(DEFAULT_DELTA / (M + N * DEFAULT_DELTA)));
 			emissionMatrix.put(state, emissionProbEntry);
 		}//end while
 	}

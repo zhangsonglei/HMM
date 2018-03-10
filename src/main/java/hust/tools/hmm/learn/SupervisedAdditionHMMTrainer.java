@@ -25,26 +25,11 @@ import hust.tools.hmm.utils.StateSequence;
  *</ul>
  */
 public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
-
-	/**
-	 * 默认加0.01平滑
-	 */
-	private final double DEFAULT_DELTA = 0.01;
 	
 	/**
 	 * 加法平滑中加数大小
 	 */
 	private double delta;
-	
-	public SupervisedAdditionHMMTrainer(TransitionAndEmissionCounter counter) {
-		super(counter);
-		this.delta = DEFAULT_DELTA;
-	}
-	
-	public SupervisedAdditionHMMTrainer(TransitionAndEmissionCounter counter, double delta) {
-		super(counter);
-		this.delta = delta <= 0 ? DEFAULT_DELTA : delta;
-	}
 	
 	public SupervisedAdditionHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
 		super(sampleStream, order);

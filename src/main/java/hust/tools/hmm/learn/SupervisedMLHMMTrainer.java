@@ -26,10 +26,6 @@ import hust.tools.hmm.utils.StateSequence;
  */
 public class SupervisedMLHMMTrainer extends AbstractSupervisedHMMTrainer {
 	
-	public SupervisedMLHMMTrainer(TransitionAndEmissionCounter counter) {
-		super(counter);
-	}
-	
 	public SupervisedMLHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
 		super(sampleStream, order);
 	}

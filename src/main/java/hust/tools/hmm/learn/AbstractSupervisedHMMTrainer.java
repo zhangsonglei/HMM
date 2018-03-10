@@ -21,7 +21,9 @@ import hust.tools.hmm.utils.StateSequence;
  *</ul>
  */
 public abstract class AbstractSupervisedHMMTrainer implements HMMTrainer {
-		
+	
+	protected final double DEFAULT_DELTA = 0.01;
+	
 	protected int order;
 	
 	private final int DEFAULT_ORDER = 1;
@@ -35,6 +37,10 @@ public abstract class AbstractSupervisedHMMTrainer implements HMMTrainer {
 	protected HashMap<StateSequence, TransitionProbEntry> transitionMatrix;
 	
 	protected HashMap<State, EmissionProbEntry> emissionMatrix;
+	
+	public AbstractSupervisedHMMTrainer() {
+		
+	}
 
 	public AbstractSupervisedHMMTrainer(TransitionAndEmissionCounter counter) {
 		this.counter = counter;

@@ -12,25 +12,20 @@ import hust.tools.hmm.io.TextFileHMMReader;
 import hust.tools.hmm.io.TextFileHMMWriter;
 import hust.tools.hmm.learn.HMMTrainer;
 import hust.tools.hmm.learn.SupervisedAdditionHMMTrainer;
-import hust.tools.hmm.learn.SupervisedEmissionOnlyHMMTrainer;
 import hust.tools.hmm.learn.SupervisedGoodTuringHMMTrainer;
 import hust.tools.hmm.learn.SupervisedMLHMMTrainer;
+import hust.tools.hmm.learn.SupervisedEmissionOnlyHMMTrainer;
 import hust.tools.hmm.learn.SupervisedRevEmissionHMMTrainer;
 import hust.tools.hmm.learn.SupervisedWittenBellHMMTrainer;
 import hust.tools.hmm.learn.UnSupervisedBaumWelchHMMTrainer;
-import hust.tools.hmm.model.DefaultConvergencyJudge;
 import hust.tools.hmm.model.HMM;
 import hust.tools.hmm.model.HMMWithAStar;
 import hust.tools.hmm.model.HMModel;
-import hust.tools.hmm.model.HMModelByRandom;
 import hust.tools.hmm.stream.SupervisedHMMSample;
-import hust.tools.hmm.stream.UnSupervisedHMMSample;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.ObservationSequence;
-import hust.tools.hmm.utils.State;
-import hust.tools.hmm.utils.StateSequence;
 
-public class TrainAndEvaluate {
+public class UnSupervisedTrainBySupervisedModel {
 
 	private final int DEFAULT_ORDER = 1;
 	private final String DEFAULT_SMOOTH = "ADD";
@@ -39,35 +34,19 @@ public class TrainAndEvaluate {
 	private String smooth;
 	private List<SupervisedHMMSample> supervisedSamples;
 	
-	
-	public TrainAndEvaluate(List<SupervisedHMMSample> supervisedSamples, int order, String smooth) {
-		this.supervisedSamples = supervisedSamples;
-		this.order = order > 0 ? order : DEFAULT_ORDER;
-		this.smooth = smooth;
-	}
-	public TrainAndEvaluate(List<SupervisedHMMSample> supervisedSamples, String smooth) {
-		this.supervisedSamples = supervisedSamples;
-		this.order = DEFAULT_ORDER;
-		this.smooth = smooth;
-	}
-	public TrainAndEvaluate(List<SupervisedHMMSample> supervisedSamples, int order) {
+	public UnSupervisedTrainBySupervisedModel(List<SupervisedHMMSample> supervisedSamples) {
 		this.supervisedSamples = supervisedSamples;
 		this.order = order > 0 ? order : DEFAULT_ORDER;
 		this.smooth = DEFAULT_SMOOTH;
 	}
-	public TrainAndEvaluate(List<SupervisedHMMSample> supervisedSamples) {
-		this.supervisedSamples = supervisedSamples;
-		this.order = DEFAULT_ORDER;
-		this.smooth = DEFAULT_SMOOTH;
-	}
-	
+
 	/**
 	 * 交叉验证
 	 * @param order		模型阶数
 	 * @param folds		交叉验证折数
 	 * @throws IOException
 	 */
-	public void crossValidation(int order, int folds, boolean isSupervised) throws IOException {
+	public void crossValidation(int order, int folds) throws IOException {
 		if(folds < 1)
 			throw new IllegalArgumentException("折数不能小于1：" + folds);
 		System.out.println("cross validating...");
@@ -87,7 +66,13 @@ public class TrainAndEvaluate {
 			}
 			System.out.println("totalSize = " + supervisedSamples.size() + "\ttrainSize = " + trainSamples.size() + "\ttestSize = " + testSamples.size());
 			long start = System.currentTimeMillis();
-			HMModel model = train(trainSamples, isSupervised);
+			HMModel model = initModel(trainSamples);
+			List<ObservationSequence> trainSequences = new ArrayList<>();
+			for(SupervisedHMMSample sample : trainSamples)
+				trainSequences.add(sample.getObservationSequence());
+			
+			HMMTrainer trainer = new UnSupervisedBaumWelchHMMTrainer(model, trainSequences);
+			model = trainer.train();
 			long train = System.currentTimeMillis();
 			evaluate(model, testSamples);
 			long eval = System.currentTimeMillis();
@@ -103,54 +88,31 @@ public class TrainAndEvaluate {
 	 * @return				HMM模型
 	 * @throws IOException
 	 */
-	public HMModel train(List<SupervisedHMMSample> trainsamples, boolean isSupervised) throws IOException {
+	public HMModel initModel(List<SupervisedHMMSample> trainsamples) throws IOException {
 		HMMTrainer trainer = null;
-		
-		if(isSupervised) {
-			switch (smooth.toUpperCase()) {
-			case "ML":
-				trainer = new SupervisedMLHMMTrainer(trainsamples, order);
-				break;
-			case "ADD":
-				trainer = new SupervisedAdditionHMMTrainer(trainsamples, order);
-				break;
-			case "WB":
-				trainer = new SupervisedWittenBellHMMTrainer(trainsamples, order);
-				break;
-			case "EO":
-				trainer = new SupervisedEmissionOnlyHMMTrainer(trainsamples, order);
-				break;
-			case "RE":
-				trainer = new SupervisedRevEmissionHMMTrainer(trainsamples, order);
-				break;
-			case "KATZ":
-				trainer = new SupervisedGoodTuringHMMTrainer(trainsamples, order);
-				break;
-			default:
-				throw new IllegalArgumentException("错误的平滑方法：" + smooth);
-			}
-		}else {
-			HashSet<State> statesSet = new HashSet<>();
-			HashSet<Observation> observationsSet = new HashSet<>();
-			
-			List<UnSupervisedHMMSample> trainSamples = new ArrayList<>();
-			for(SupervisedHMMSample sample : trainsamples) {
-				ObservationSequence observationSequence = sample.getObservationSequence();
-				trainSamples.add(new UnSupervisedHMMSample(observationSequence));
-				
-				StateSequence stateSequence = sample.getStateSequence();
-				for(int i = 0; i < stateSequence.length(); i++) {
-					statesSet.add(stateSequence.get(i));
-					observationsSet.add(observationSequence.get(i));
-				}
-			}
-			
-			trainer = new HMModelByRandom(observationsSet, statesSet, 3);
-			System.out.println("已建立初始模型");
-			HMModel model = trainer.train();
-			trainer = new UnSupervisedBaumWelchHMMTrainer(model, trainSamples, new DefaultConvergencyJudge());
-			model = trainer.train();
-		}		
+
+		switch (smooth.toUpperCase()) {
+		case "ML":
+			trainer = new SupervisedMLHMMTrainer(trainsamples, order);
+			break;
+		case "ADD":
+			trainer = new SupervisedAdditionHMMTrainer(trainsamples, order);
+			break;
+		case "WB":
+			trainer = new SupervisedWittenBellHMMTrainer(trainsamples, order);
+			break;
+		case "EO":
+			trainer = new SupervisedEmissionOnlyHMMTrainer(trainsamples, order);
+			break;
+		case "RE":
+			trainer = new SupervisedRevEmissionHMMTrainer(trainsamples, order);
+			break;
+		case "KATZ":
+			trainer = new SupervisedGoodTuringHMMTrainer(trainsamples, order);
+			break;
+		default:
+			throw new IllegalArgumentException("错误的平滑方法：" + smooth);
+		}
 		
 		return trainer.train();
 	}

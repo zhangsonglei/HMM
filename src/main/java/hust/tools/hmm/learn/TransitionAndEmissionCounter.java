@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
+
 import hust.tools.hmm.stream.SupervisedHMMSample;
 import hust.tools.hmm.stream.SupervisedHMMSampleStream;
 import hust.tools.hmm.utils.CommonUtils;
@@ -336,6 +338,15 @@ public class TransitionAndEmissionCounter {
 	 */
 	public Iterator<StateSequence> transitionIterator() {
 		return transitionCountMap.keySet().iterator();
+	}
+	
+	/**
+	 * 返回给定转移起点的所有转移目标及其数量
+	 * @param start	转移起点
+	 * @return		所有转移目标及其数量
+	 */
+	public Iterator<Entry<State, Integer>> transitionTargetCountIterator(StateSequence start) {
+		return transitionCountMap.get(start).entryIterator();
 	}
 	
 	/**

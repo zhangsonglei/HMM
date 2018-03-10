@@ -17,7 +17,7 @@ public class DefaultConvergencyJudge implements ConvergencyJudge {
 	/**
 	 * 默认迭代次数
 	 */
-	private final int DEFAULT_ITERATION = 10;
+	private final int DEFAULT_ITERATION = 30;
 	
 	/**
 	 * 默认阈值(收敛条件, 两种模型对同一个训练语料的概率差值小于默认阈值)
@@ -25,24 +25,23 @@ public class DefaultConvergencyJudge implements ConvergencyJudge {
 	private final double DEFAULT_DELTA = 0.01;
 	
 	@Override
-	public boolean isConvergency(HMModel preModel, HMModel currentModel, List<ObservationSequence> trainSequences, int iteration) {
-		if(iteration > DEFAULT_ITERATION)
-			return true;
-		
-		double preProb, currentProb;
-		preProb = currentProb = 0.0;
+	public boolean isConvergency(HMModel preModel, HMModel currentModel, List<ObservationSequence> trainSequences, int iteration) {	
+		double preLogProb, currentLogProb;
+		preLogProb = currentLogProb = 0.0;
 		ForwardAlgorithm algorithm = null;
 		
 		for(ObservationSequence sequence : trainSequences) {
 			algorithm = new ForwardAlgorithm(preModel, sequence);
-			preProb += algorithm.getProb();
+			preLogProb += algorithm.getProb();
 			algorithm = new ForwardAlgorithm(currentModel, sequence);
-			currentProb += algorithm.getProb();
+			currentLogProb += algorithm.getProb();
 		}
 		
-		System.out.println("iter = " + iteration + "\tpreProb = " + preProb +"\tcurrentProb = " + currentProb);
+		System.out.println("iter = " + iteration + "\tpreLogProb = " + Math.log10(preLogProb) +"\tcurrentLogProb = " + Math.log10(currentLogProb));
+		if(iteration >= DEFAULT_ITERATION)
+			return true;
 		
-		if(Math.abs(currentProb - preProb) < DEFAULT_DELTA)
+		if(Math.abs(Math.log10(currentLogProb) - Math.log10(preLogProb)) < DEFAULT_DELTA)
 			return true;
 		
 		return false;

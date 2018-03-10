@@ -24,15 +24,6 @@ import hust.tools.hmm.utils.StateSequence;
  *</ul>
  */
 public class SupervisedRevEmissionHMMTrainer extends AbstractSupervisedHMMTrainer {
-
-	/**
-	 * 对初始转移向量和发射概率进行加delta平滑
-	 */
-	private final double delta = 0.01;
-	
-	public SupervisedRevEmissionHMMTrainer(TransitionAndEmissionCounter counter) {
-		super(counter);
-	}
 	
 	public SupervisedRevEmissionHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
 		super(sampleStream, order);
@@ -65,7 +56,7 @@ public class SupervisedRevEmissionHMMTrainer extends AbstractSupervisedHMMTraine
 		Set<State> set = counter.getDictionary().getStates();
 		for(State state : set) {
 			int count = counter.getStartStateCount(state);
-			double prob = (count + delta) / (M + N * delta);
+			double prob = (count + DEFAULT_DELTA) / (M + N * DEFAULT_DELTA);
 			pi.put(state, Math.log10(prob));
 		}
 	}
@@ -80,7 +71,7 @@ public class SupervisedRevEmissionHMMTrainer extends AbstractSupervisedHMMTraine
 			TransitionProbEntry entry = new TransitionProbEntry();
 			for(State target : statesSet) {
 				int count = counter.getTransitionCount(start, target);
-				double prob = (delta + count) / (n_Count + N * delta);
+				double prob = (DEFAULT_DELTA + count) / (n_Count + N * DEFAULT_DELTA);
 				entry.put(target, Math.log10(prob));
 			}
 			
@@ -98,7 +89,7 @@ public class SupervisedRevEmissionHMMTrainer extends AbstractSupervisedHMMTraine
 						TransitionProbEntry entry = new TransitionProbEntry();
 						for(State target : statesSet) {
 							int count = counter.getTransitionCount(start, target);
-							double prob = (delta + count) / (n_Count + N * delta);
+							double prob = (DEFAULT_DELTA + count) / (n_Count + N * DEFAULT_DELTA);
 							entry.put(target, Math.log10(prob));
 						}
 						

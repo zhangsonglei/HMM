@@ -110,6 +110,22 @@ public class Dictionary {
 	}
 	
 	/**
+	 * 返回状态序列索引对应的状态序列
+	 * @param states	状态序列索引
+	 * @return			状态序列
+	 */
+	public StateSequence getStateSequence(int[] states) {
+		if(states == null)
+			throw new IllegalArgumentException("观测索引不能为空");
+		
+		State[] sts = new State[states.length];
+		for(int i = 0; i < states.length; i++)
+			sts[i] = getState(i);
+		
+		return new StateSequence(sts);
+	}
+	
+	/**
 	 * 返回给定隐藏状态的索引
 	 * @param state	待求索引的隐藏状态
 	 * @return		索引
@@ -131,6 +147,22 @@ public class Dictionary {
 			return indexToObservation.get(index);
 		
 		return null;
+	}
+	
+	/**
+	 * 返回观测序列索引对应的观测序列
+	 * @param observations	观测序列索引
+	 * @return				观测序列
+	 */
+	public ObservationSequence getObservationSequence(int[] observations) {
+		if(observations == null)
+			throw new IllegalArgumentException("观测索引不能为空");
+		
+		Observation[] obs = new Observation[observations.length];
+		for(int i = 0; i < observations.length; i++)
+			obs[i] = getObservation(i);
+		
+		return new ObservationSequence(obs);
 	}
 	
 	/**

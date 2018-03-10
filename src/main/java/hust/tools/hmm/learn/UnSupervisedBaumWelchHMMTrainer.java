@@ -2,6 +2,7 @@ package hust.tools.hmm.learn;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -35,7 +36,6 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 
 	private ConvergencyJudge convergencyJudge;
 	private List<ObservationSequence> trainSequences;
-	private int iteration;
 	
 	/**
 	 * 构造方法
@@ -66,21 +66,22 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		for(UnSupervisedHMMSample sample : trainSamples)
 			trainSequences.add(sample.getObservationSequence());
 	}
-	public UnSupervisedBaumWelchHMMTrainer(HMModel initHMModel, List<UnSupervisedHMMSample> trainSequences) throws IOException {
-		this(initHMModel, trainSequences, new DefaultConvergencyJudge());
+	public UnSupervisedBaumWelchHMMTrainer(HMModel initHMModel, List<ObservationSequence> trainSequences) throws IOException {
+		super(initHMModel);
+		this.trainSequences = trainSequences;
+		convergencyJudge = new DefaultConvergencyJudge();
 	}
 	
 	@Override
 	public HMModel train() {
 		HMModel preModel, currentModel;
 		currentModel = model;
+		int iteration = 1;
 		
 		do{
-			iteration++;
-			System.out.println("第" + iteration + "次迭代");
 			preModel = currentModel;
 			currentModel = iterate(preModel, trainSequences);
-		}while(!convergencyJudge.isConvergency(preModel, currentModel, trainSequences, iteration));
+		}while(!convergencyJudge.isConvergency(preModel, currentModel, trainSequences, iteration++));
 		
 		return currentModel;
 	}
@@ -101,9 +102,10 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		int M = model.observationsCount();
 		
 		double[][] alpha, beta;//前向概率和后向概率
-		double[][][] allGamma = new double[trainSequences.size()][][];
-		double aijNum[][] = new double[N][N];
-		double aijDen[] = new double[N];
+		double tempPiNumerator[] = new double[N];
+		double tempPiDenominator = 0.0;
+		double tempTransitionMatrixNumerator[][] = new double[N][N];
+		double tempTransitionMatrixDenominator[] = new double[N];
 		double[][] tempEmissionMatrixNumerator = new double[N][M];
 		double[][] tempEmissionMatrixDenominator = new double[N][M];		
 		double sum1, sum2;
@@ -124,104 +126,103 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 				observationsIndex[i] = dict.getIndex(sequence.get(i));
 			
 			double[][][] xi = calcXi(model, observationsIndex, alpha, beta);
-			double[][] gamma = allGamma[no] = calcGamma(model, sequence.length(), alpha, beta);
+			double[][] gamma = calcGamma(model, xi);
 			
 			for(int i = 0; i < N; i++) {
 				for(int t = 0; t < T - 1; t++) {
-					aijDen[i] += gamma[t][i];
+					if(t== 0) {
+						tempPiNumerator[i] += gamma[t][i];
+						tempPiDenominator += gamma[t][i];
+					}
+					
+					tempTransitionMatrixDenominator[i] += gamma[t][i];
 					
 					for(int j = 0; j < N; j++)
-						aijNum[i][j] += xi[t][i][j];
+						tempTransitionMatrixNumerator[i][j] += xi[t][i][j];
 				}
 			
 				for(int k = 0; k < M; k++) {
 					sum1 = sum2 = 0.0;
 					for(int t = 0; t < T; t++) {
-						if(sequence.get(t).equals(dict.getState(k)))
+						if(sequence.get(t).equals(dict.getObservation(k)))
 							sum1 += gamma[t][i];
+						
 						sum2 += gamma[t][i];
 					}
 					
 					tempEmissionMatrixNumerator[i][k] += sum1;
 					tempEmissionMatrixDenominator[i][k] += sum2;
 				}
-			}			
-		}
-		
-		//计算初始转移概率
-		double sum = 0.0;
-		for(int no = 0; no < sequences.size(); no++) {
-			for(int i = 0; i < N; i++) {
-				State state = dict.getState(i);
-				if(pi.containsKey(state))
-					pi.put(state, pi.get(state) + allGamma[no][0][i] / sequences.size());
-				else
-					pi.put(state, allGamma[no][0][i] / sequences.size());
-				
-				sum += allGamma[no][0][i] / sequences.size();
 			}
 		}
-		//归一化并取对数
-		for(Entry<State, Double> entry : pi.entrySet()) {
-			entry.setValue(Math.log10(entry.getValue() / sum));
-		}
 		
-		//计算转移概率
+		/**
+		 * 重新估算模型参数
+		 * prob = 0.001 + 0.999 * prob 防止概率为0
+		 */		
+		double sumPi = 0.0;
+		double prob = 0.0;
 		for(int i = 0; i < N; i++) {
-			StateSequence start = new StateSequence(dict.getState(i));
-			TransitionProbEntry entry = new TransitionProbEntry();
-			sum = 0.0;
-			double prob = 0.0;
-			if(aijDen[i] == 0.0) { // 状态i不可以作为转移起点
+			State state = dict.getState(i);
+			//计算初始转移概率
+			prob = 0.001 + 0.999 * tempPiNumerator[i] / tempPiDenominator;
+			sumPi += prob;
+			pi.put(state, prob);
+			
+			//计算转移概率
+			TransitionProbEntry transitionProbEntry = new TransitionProbEntry();
+			double sumA = 0.0;
+			StateSequence start = new StateSequence(state);
+			if(tempTransitionMatrixDenominator[i] == 0.0) { // 状态i不可以作为转移起点
+				sumA = 0.0;
 				for(int j = 0; j < N; j++) {
 					State target = dict.getState(j);
 					prob = Math.pow(10, transitionMatrix.get(start).getTransitionLogProb(target));
-					sum += prob;
-					entry.put(target, prob);
+					sumA += prob;
+					transitionProbEntry.put(target, prob);
 				}
 				//归一化
 				for(int j = 0; j < N; j++) {
 					State target = dict.getState(j);
-					entry.put(target, Math.log10(entry.getTransitionLogProb(target) / sum));
+					transitionProbEntry.put(target, Math.log10(transitionProbEntry.getTransitionLogProb(target) / sumA));
 				}
 			}else {
+				sumA = 0.0;
 				for(int j = 0; j < N; j++) {
 					State target = dict.getState(j);
-					prob = Math.pow(10, aijNum[i][j] / aijDen[i]);
-					sum += prob;
-					entry.put(target, prob);
+					prob = 0.001 + 0.999 * tempTransitionMatrixNumerator[i][j] / tempTransitionMatrixDenominator[i];
+					sumA += prob;
+					transitionProbEntry.put(target, prob);
 				}
 				//归一化
 				for(int j = 0; j < N; j++) {
 					State target = dict.getState(j);
-					entry.put(target, Math.log10(entry.getTransitionLogProb(target) / sum));
+					transitionProbEntry.put(target, Math.log10(transitionProbEntry.getTransitionLogProb(target) / sumA));
 				}
 			}
-			
-			transitionMatrix.put(start, entry);
-		}
+			transitionMatrix.put(start, transitionProbEntry);
 		
-		//计算发射概率
-		for(int i = 0; i < N; i++) {
-			State state = dict.getState(i);
-			EmissionProbEntry entry = new EmissionProbEntry();
-			sum = 0.0;
-			double prob = 0.0;
-			Observation observation;
+			//计算发射概率
+			EmissionProbEntry emissionProbEntry = new EmissionProbEntry();
+			double sumB = 0.0;
 			for(int j = 0; j < M; j++) {
-				observation = dict.getObservation(j);
-				prob = tempEmissionMatrixNumerator[i][j] / tempEmissionMatrixDenominator[i][j];
-				sum += prob;
-				entry.put(observation, prob);
+				Observation observation = dict.getObservation(j);
+				prob = 0.001 + 0.999 * tempEmissionMatrixNumerator[i][j] / tempEmissionMatrixDenominator[i][j];
+				sumB += prob;
+				emissionProbEntry.put(observation, prob);
 			}
-			
 			//归一化
 			for(int j = 0; j < M; j++) {
-				observation = dict.getObservation(j);
-				entry.put(observation, Math.log10(entry.getEmissionLogProb(observation) / sum));
+				Observation observation = dict.getObservation(j);
+				emissionProbEntry.put(observation, Math.log10(emissionProbEntry.getEmissionLogProb(observation) / sumB));
 			}
 			
-			emissionMatrix.put(state, entry);
+			emissionMatrix.put(state, emissionProbEntry);
+		}
+		
+		//归一化Pi并取对数
+		for(Entry<State, Double> entry : pi.entrySet()) {
+			entry.setValue(Math.log10(entry.getValue() / sumPi));
 		}
 
 		return new HMModelBasedMap(1, dict, pi, transitionMatrix, emissionMatrix);
@@ -229,31 +230,43 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 	
 	/**
 	 * 给定模型和观测，计算在t时刻处于状态i的概率gamma[t][i]
-	 * gamma[t][i] = alpha[t][i] * beta[t][i] / denominator
+	 * gamma[t][i] = SUMj{xi[t][i][j]}
 	 * @param model	HMM模型
-	 * @param T		观测序列长度
-	 * @param alpha	前向概率
-	 * @param beta	后向概率
+	 * @param xi	
 	 * @return		gamma
 	 */
-	private double[][] calcGamma(HMModel model, int T, double[][] alpha, double[][] beta) {
-		if(T <= 1)
-			throw new IllegalArgumentException("观测序列太短");
+	private double[][] calcGamma(HMModel model, double[][][] xi) {
+//		if(T <= 1)
+//		throw new IllegalArgumentException("观测序列太短");
+//	
+//	int N = model.statesCount();
+//	double[][] gamma = new double[T][N];
+//	
+//	for(int t = 0; t < T; t++) {
+//		double denominator = 0.0;
+//		for(int j = 0; j < N; j++) {
+//			gamma[t][j] = Math.pow(10, alpha[t][j]) * Math.pow(10, beta[t][j]);
+//			denominator += gamma[t][j];
+//		}
+//
+//		for(int i = 0; i < N; i++)
+//			gamma[t][i] = gamma[t][i] / denominator;
+//	}		
 		
-		int N = model.statesCount();
-		double[][] gamma = new double[T][N];
+		double[][] gamma = new double[xi.length + 1][xi[0].length];
 		
-		for(int t = 0; t < T; t++) {
-			double denominator = 0.0;
-			for(int j = 0; j < N; j++) {
-				gamma[t][j] = Math.pow(10, alpha[t][j]) * Math.pow(10, beta[t][j]);
-				denominator += gamma[t][j];
-			}
-
-			for(int i = 0; i < N; i++)
-				gamma[t][i] = gamma[t][i] / denominator;
-		}
+		for (int t = 0; t < xi.length + 1; t++)
+			Arrays.fill(gamma[t], 0.);
 		
+		for (int t = 0; t < xi.length; t++)
+			for (int i = 0; i < xi[0].length; i++)
+				for (int j = 0; j < xi[0].length; j++)
+					gamma[t][i] += xi[t][i][j];
+		
+		for (int j = 0; j < xi[0].length; j++)
+			for (int i = 0; i < xi[0].length; i++)
+				gamma[xi.length][j] += xi[xi.length - 1][i][j];		
+				
 		return gamma;
 	}
 	
@@ -270,7 +283,7 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 	private double[][][] calcXi(HMModel model, int[] observations, double[][] alpha, double[][] beta) {
 		int T = observations.length;
 		if(T <= 1)
-			throw new IllegalArgumentException("观测序列太短");
+			throw new IllegalArgumentException("观测序列太短:" + model.getDict().getObservationSequence(observations));
 		
 		int N = model.statesCount();
 		double[][][] xi = new double[T - 1][N][N];
