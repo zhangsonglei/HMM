@@ -14,8 +14,6 @@ import hust.tools.hmm.learn.HMMTrainer;
 import hust.tools.hmm.learn.SupervisedAdditionHMMTrainer;
 import hust.tools.hmm.learn.SupervisedGoodTuringHMMTrainer;
 import hust.tools.hmm.learn.SupervisedMLHMMTrainer;
-import hust.tools.hmm.learn.SupervisedEmissionOnlyHMMTrainer;
-import hust.tools.hmm.learn.SupervisedRevEmissionHMMTrainer;
 import hust.tools.hmm.learn.SupervisedWittenBellHMMTrainer;
 import hust.tools.hmm.learn.UnSupervisedBaumWelchHMMTrainer;
 import hust.tools.hmm.model.HMM;
@@ -100,12 +98,6 @@ public class UnSupervisedTrainBySupervisedModel {
 			break;
 		case "WB":
 			trainer = new SupervisedWittenBellHMMTrainer(trainsamples, order);
-			break;
-		case "EO":
-			trainer = new SupervisedEmissionOnlyHMMTrainer(trainsamples, order);
-			break;
-		case "RE":
-			trainer = new SupervisedRevEmissionHMMTrainer(trainsamples, order);
 			break;
 		case "KATZ":
 			trainer = new SupervisedGoodTuringHMMTrainer(trainsamples, order);

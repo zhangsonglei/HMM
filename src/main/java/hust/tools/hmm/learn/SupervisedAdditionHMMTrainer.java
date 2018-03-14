@@ -97,22 +97,6 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 			transitionMatrix.put(start, entry);
 		}
 		
-		if(order > 1) {
-			StateSequence[] sequences = transitionMatrix.keySet().toArray(new StateSequence[transitionMatrix.size()]);
-			for(StateSequence sequence : sequences) {
-				StateSequence start = sequence.addFirst(CommonUtils.SOS);
-				int n_Count = counter.getTransitionStartCount(start);
-				TransitionProbEntry entry = new TransitionProbEntry();
-				for(State target : statesSet) {
-					int count = counter.getTransitionCount(start, target);
-					double prob = (delta + count) / (n_Count + N * delta);
-					entry.put(target, Math.log10(prob));
-				}
-				
-				transitionMatrix.put(start, entry);
-			}
-		}
-		
 		for(int i = 1; i < order; i++) {//遍历增加所有2-order阶的转移概率
 			StateSequence[] sequences = transitionMatrix.keySet().toArray(new StateSequence[transitionMatrix.size()]);
 			for(StateSequence sequence : sequences) {
@@ -138,31 +122,10 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 		for(Iterator<Map.Entry<StateSequence, TransitionProbEntry>> it = transitionMatrix.entrySet().iterator(); it.hasNext();) {
 		    StateSequence start = it.next().getKey();
 		    
-		    if(start.length() != order && !start.get(0).equals(CommonUtils.SOS))
+		    if(start.length() != order)
 		    	it.remove();
 		}
-		
-//		try {
-//			outputTransition();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
 	}
-	
-//	private void outputTransition() throws IOException {
-//		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(new File("transition.txt")));
-//		BufferedWriter bWriter = new BufferedWriter(writer);
-//		for(Entry<StateSequence, TransitionProbEntry> entry : transitionMatrix.entrySet()) {
-//			Iterator<Entry<State, Double>> entryIt = entry.getValue().entryIterator();
-//			while(entryIt.hasNext()) {
-//				Entry<State, Double> e = entryIt.next();
-//				bWriter.write(entry.getKey() + "\t" + e.getKey() + " " + e.getValue());
-//				bWriter.newLine();
-//			}			
-//		}
-//		bWriter.flush();
-//		bWriter.close();
-//	}
 	
 	/**
 	 * 采用加1平滑方式计算发射概率矩阵:p=(C+1)/(M+N)（已确保概率之和为1，不需要归一化）

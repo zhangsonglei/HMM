@@ -56,9 +56,9 @@ public class HMMWithAStar implements HMM {
 
 		/**
 		 * 计算高阶起始部分概率
-		 * <sos>a->b,<sos>ab->c,<sos>abc->d,...
+		 * a->b,ab->c,abc->d,...
 		 */
-		StateSequence startSeq = new StateSequence(CommonUtils.SOS);
+		StateSequence startSeq = new StateSequence();
 		for(int i = 1; i < order && i < observations.length(); i++) {
 			State target = states.get(i);
 			startSeq = startSeq.addLast(states.get(i - 1));

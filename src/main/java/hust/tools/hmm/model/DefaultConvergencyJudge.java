@@ -17,7 +17,7 @@ public class DefaultConvergencyJudge implements ConvergencyJudge {
 	/**
 	 * 默认迭代次数
 	 */
-	private final int DEFAULT_ITERATION = 30;
+	private final int DEFAULT_ITERATION = 13;
 	
 	/**
 	 * 默认阈值(收敛条件, 两种模型对同一个训练语料的概率差值小于默认阈值)
@@ -41,8 +41,8 @@ public class DefaultConvergencyJudge implements ConvergencyJudge {
 		if(iteration >= DEFAULT_ITERATION)
 			return true;
 		
-		if(Math.abs(Math.log10(currentLogProb) - Math.log10(preLogProb)) < DEFAULT_DELTA)
-			return true;
+//		if(Math.abs(Math.log10(currentLogProb) - Math.log10(preLogProb)) < DEFAULT_DELTA)
+//			return true;
 		
 		return false;
 	}

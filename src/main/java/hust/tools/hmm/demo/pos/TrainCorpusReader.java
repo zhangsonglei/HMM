@@ -15,7 +15,10 @@ import hust.tools.hmm.utils.StringState;
 
 public class TrainCorpusReader {
 
-	public static List<SupervisedHMMSample> readSupervisedHMMSamples(File file) throws IOException {
+	public static List<SupervisedHMMSample> readSupervisedHMMSamples(File file, int order) throws IOException {
+		if(order < 1)
+			throw new IllegalArgumentException("模型阶数必须为正整数");
+		
 		List<SupervisedHMMSample> samples = new ArrayList<>();
 		InputStreamReader ireader = new InputStreamReader(new FileInputStream(file), "utf8");
 		BufferedReader reader = new BufferedReader(ireader);
@@ -25,7 +28,7 @@ public class TrainCorpusReader {
 			line = line.trim();
 			if(!line.equals("")) {
 				String[] wordTags = line.split("\\s+");
-				if(wordTags.length <2) {
+				if(wordTags.length <= order) {
 					System.err.println("句子太短，抛弃: " + line);
 					continue;
 				}

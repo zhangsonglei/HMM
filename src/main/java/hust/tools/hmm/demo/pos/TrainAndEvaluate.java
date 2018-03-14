@@ -12,10 +12,9 @@ import hust.tools.hmm.io.TextFileHMMReader;
 import hust.tools.hmm.io.TextFileHMMWriter;
 import hust.tools.hmm.learn.HMMTrainer;
 import hust.tools.hmm.learn.SupervisedAdditionHMMTrainer;
-import hust.tools.hmm.learn.SupervisedEmissionOnlyHMMTrainer;
 import hust.tools.hmm.learn.SupervisedGoodTuringHMMTrainer;
+import hust.tools.hmm.learn.SupervisedInterpolationHMMTrainer;
 import hust.tools.hmm.learn.SupervisedMLHMMTrainer;
-import hust.tools.hmm.learn.SupervisedRevEmissionHMMTrainer;
 import hust.tools.hmm.learn.SupervisedWittenBellHMMTrainer;
 import hust.tools.hmm.learn.UnSupervisedBaumWelchHMMTrainer;
 import hust.tools.hmm.model.DefaultConvergencyJudge;
@@ -32,33 +31,18 @@ import hust.tools.hmm.utils.StateSequence;
 
 public class TrainAndEvaluate {
 
-	private final int DEFAULT_ORDER = 1;
-	private final String DEFAULT_SMOOTH = "ADD";
-	
+	private final double DEFAULT_RATIO = 0.1;
 	private int order;
+	private final int DEFAULT_ORDER = 1;
+	private double ratio;
 	private String smooth;
 	private List<SupervisedHMMSample> supervisedSamples;
 	
-	
-	public TrainAndEvaluate(List<SupervisedHMMSample> supervisedSamples, int order, String smooth) {
+	public TrainAndEvaluate(List<SupervisedHMMSample> supervisedSamples, int order, String smooth, double ratio) {
 		this.supervisedSamples = supervisedSamples;
 		this.order = order > 0 ? order : DEFAULT_ORDER;
 		this.smooth = smooth;
-	}
-	public TrainAndEvaluate(List<SupervisedHMMSample> supervisedSamples, String smooth) {
-		this.supervisedSamples = supervisedSamples;
-		this.order = DEFAULT_ORDER;
-		this.smooth = smooth;
-	}
-	public TrainAndEvaluate(List<SupervisedHMMSample> supervisedSamples, int order) {
-		this.supervisedSamples = supervisedSamples;
-		this.order = order > 0 ? order : DEFAULT_ORDER;
-		this.smooth = DEFAULT_SMOOTH;
-	}
-	public TrainAndEvaluate(List<SupervisedHMMSample> supervisedSamples) {
-		this.supervisedSamples = supervisedSamples;
-		this.order = DEFAULT_ORDER;
-		this.smooth = DEFAULT_SMOOTH;
+		this.ratio = (ratio < 1.0 && ratio > 0.01) ? ratio : DEFAULT_RATIO;
 	}
 	
 	/**
@@ -114,14 +98,11 @@ public class TrainAndEvaluate {
 			case "ADD":
 				trainer = new SupervisedAdditionHMMTrainer(trainsamples, order);
 				break;
+			case "INT":
+				trainer = new SupervisedInterpolationHMMTrainer(trainsamples, ratio, order);
+				break;
 			case "WB":
 				trainer = new SupervisedWittenBellHMMTrainer(trainsamples, order);
-				break;
-			case "EO":
-				trainer = new SupervisedEmissionOnlyHMMTrainer(trainsamples, order);
-				break;
-			case "RE":
-				trainer = new SupervisedRevEmissionHMMTrainer(trainsamples, order);
 				break;
 			case "KATZ":
 				trainer = new SupervisedGoodTuringHMMTrainer(trainsamples, order);
@@ -149,7 +130,6 @@ public class TrainAndEvaluate {
 			System.out.println("已建立初始模型");
 			HMModel model = trainer.train();
 			trainer = new UnSupervisedBaumWelchHMMTrainer(model, trainSamples, new DefaultConvergencyJudge());
-			model = trainer.train();
 		}		
 		
 		return trainer.train();

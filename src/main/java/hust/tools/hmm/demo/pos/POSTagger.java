@@ -11,20 +11,19 @@ public class POSTagger {
 	
 	private static File file;	
 	private static final int order = 1;
-//	private static boolean isSupervised;
+	private static final boolean isSupervised = true;
+	private static final double ratio = 0.03;
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException {
 //		file = new File("E:\\JOB\\hmm\\data\\demo.pos");
 		file = new File("E:\\JOB\\hmm\\data\\conll.pos");
 //		file = new File("E:\\JOB\\hmm\\data\\pos.train");
-		
-//		isSupervised = false;
-		
-		List<SupervisedHMMSample> samples = TrainCorpusReader.readSupervisedHMMSamples(file);
-//		TrainAndEvaluate trainAndEvaluate = new TrainAndEvaluate(samples, order);
-//		trainAndEvaluate.crossValidation(order, 10, isSupervised);
-		UnSupervisedTrainBySupervisedModel trainBySupervisedModel = new UnSupervisedTrainBySupervisedModel(samples);
-		trainBySupervisedModel.crossValidation(order, 10);
+				
+		List<SupervisedHMMSample> samples = TrainCorpusReader.readSupervisedHMMSamples(file, order);
+		TrainAndEvaluate trainAndEvaluate = new TrainAndEvaluate(samples, order, "add", ratio);
+		trainAndEvaluate.crossValidation(order, 10, isSupervised);
+//		UnSupervisedTrainBySupervisedModel trainBySupervisedModel = new UnSupervisedTrainBySupervisedModel(samples);
+//		trainBySupervisedModel.crossValidation(order, 10);
 		
 //		List<SupervisedHMMSample> trainSamples = new ArrayList<>();
 //		List<SupervisedHMMSample> testSamples = new ArrayList<>();

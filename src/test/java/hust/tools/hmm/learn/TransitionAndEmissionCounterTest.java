@@ -12,7 +12,6 @@ import hust.tools.hmm.learn.TransitionAndEmissionCounter;
 import hust.tools.hmm.utils.StringObservation;
 import hust.tools.hmm.utils.StringState;
 import hust.tools.hmm.stream.SupervisedHMMSample;
-import hust.tools.hmm.utils.CommonUtils;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.ObservationSequence;
 import hust.tools.hmm.utils.State;
@@ -99,28 +98,6 @@ public class TransitionAndEmissionCounterTest {
 		
 		target = new StringState("7");
 		assertEquals(0, counter.getTransitionCount(new StateSequence(states36), target));
-		
-		states = new StringState[]{(StringState) CommonUtils.SOS, new StringState("1")};
-		target = new StringState("2");
-		assertEquals(1, counter.getTransitionCount(new StateSequence(states), target));
-		target = new StringState("3");
-		assertEquals(1, counter.getTransitionCount(new StateSequence(states), target));
-		
-		states = new StringState[]{(StringState) CommonUtils.SOS, new StringState("1"), new StringState("2")};
-		target = new StringState("3");
-		assertEquals(1, counter.getTransitionCount(new StateSequence(states), target));
-		
-		states = new StringState[]{(StringState) CommonUtils.SOS, new StringState("1"), new StringState("3")};
-		target = new StringState("5");
-		assertEquals(1, counter.getTransitionCount(new StateSequence(states), target));
-		
-		states = new StringState[]{(StringState) CommonUtils.SOS, new StringState("0")};
-		target = new StringState("8");
-		assertEquals(1, counter.getTransitionCount(new StateSequence(states), target));
-		
-		states = new StringState[]{(StringState) CommonUtils.SOS, new StringState("0"), new StringState("8")};
-		target = new StringState("6");
-		assertEquals(1, counter.getTransitionCount(new StateSequence(states), target));
 	}
 
 	//测试发射计数

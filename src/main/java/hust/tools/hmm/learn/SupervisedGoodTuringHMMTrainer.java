@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMModel;
 import hust.tools.hmm.model.HMModelBasedMap;
@@ -17,7 +18,7 @@ import hust.tools.hmm.utils.StateSequence;
 
 /**
  *<ul>
- *<li>Description: 基于Katz回退的监督学习模型训练类器
+ *<li>Description: 基于GoodTuring的监督学习模型训练类器
  *<li>Company: HUST
  *<li>@author Sonly
  *<li>Date: 2018年1月10日
@@ -25,12 +26,26 @@ import hust.tools.hmm.utils.StateSequence;
  */
 public class SupervisedGoodTuringHMMTrainer extends AbstractSupervisedHMMTrainer {
 	
-	public SupervisedGoodTuringHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
+	private final static int DEFALUE_K = 7;
+	/**
+	 * 计数折扣的阈值
+	 */
+	private int K;
+	
+	public SupervisedGoodTuringHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order, int K) throws IOException {
 		super(sampleStream, order);
+		this.K = K > 0 ? K : DEFALUE_K;
+	}
+	public SupervisedGoodTuringHMMTrainer(SupervisedHMMSampleStream<?> sampleStream, int order) throws IOException {
+		this(sampleStream, order, DEFALUE_K);
 	}
 	
-	public SupervisedGoodTuringHMMTrainer(List<SupervisedHMMSample> samples, int order) throws IOException {
+	public SupervisedGoodTuringHMMTrainer(List<SupervisedHMMSample> samples, int order, int K) throws IOException {
 		super(samples, order);
+		this.K = K > 0 ? K : DEFALUE_K;
+	}
+	public SupervisedGoodTuringHMMTrainer(List<SupervisedHMMSample> samples, int order) throws IOException {
+		this(samples, order, DEFALUE_K);
 	}
 	
 	@Override
@@ -63,27 +78,22 @@ public class SupervisedGoodTuringHMMTrainer extends AbstractSupervisedHMMTrainer
 	
 	@Override
 	protected void calcTransitionMatrix(TransitionAndEmissionCounter counter) {
-		GoodTuringCounts goodTuringCounts = new GoodTuringCounts(counter.getTransitionCount(), order + 1);
+		GoodTuringCounts goodTuringCounts = new GoodTuringCounts(counter.getTransitionCount(), order, K);
 		
 		Set<State> statesSet = counter.getDictionary().getStates();
 		for(State state : statesSet) {//遍历所有隐藏状态，增加所有可能的一阶转移
 			StateSequence start = new StateSequence(state);
-			double n_Count = 0;
 			TransitionProbEntry entry = new TransitionProbEntry();
 			for(State target : statesSet) {//计算分母
-				int count = counter.getTransitionCount(start, target);
-				if(count != 0)
-					n_Count += goodTuringCounts.getNr(count, 1);
+				int len = start.length();
+				int r = counter.getTransitionCount(start, target);
+				
+				double prob = 0.0;
+				if(r != 0)
+					prob =  r * goodTuringCounts.getDiscountCoeff(len, r) / goodTuringCounts.getTotalByOrder(len);
 				else
-					n_Count += goodTuringCounts.getNr(1, 1);
-			}
-			
-			for(State target : statesSet) {//计算每一种一阶转移的goodturing概率
-				int count = counter.getTransitionCount(start, target);
-				if(count != 0)
-					entry.put(target, Math.log10(goodTuringCounts.getNr(count, 1) / n_Count));
-				else
-					entry.put(target, Math.log10(goodTuringCounts.getNr(1, 1)/ n_Count));
+					prob = goodTuringCounts.getN1ByOrder(len) / goodTuringCounts.getTotalByOrder(len) / (Math.pow(statesSet.size(), len));
+				entry.put(target, Math.log10(prob));
 			}
 			
 			transitionMatrix.put(start, entry);
@@ -94,24 +104,18 @@ public class SupervisedGoodTuringHMMTrainer extends AbstractSupervisedHMMTrainer
 			for(StateSequence sequence : sequences) {
 				if(sequence.length() == i) {
 					for(State state : statesSet) {
-						StateSequence start = sequence.addLast(state);
-						double n_Count = 0;
-						
+						StateSequence start = sequence.addLast(state);						
 						TransitionProbEntry entry = new TransitionProbEntry();
 						for(State target : statesSet) {//计算分母
-							int count = counter.getTransitionCount(start, target);
-							if(count != 0)
-								n_Count += goodTuringCounts.getNr(count, i + 1);
+							int len = start.length();
+							int r = counter.getTransitionCount(start, target);
+							
+							double prob = 0.0;
+							if(r != 0)
+								prob =  r * goodTuringCounts.getDiscountCoeff(len, r) / goodTuringCounts.getTotalByOrder(len);
 							else
-								n_Count += goodTuringCounts.getNr(1, i + 1);
-						}
-						
-						for(State target : statesSet) {//计算每一种转移的goodturing概率
-							int count = counter.getTransitionCount(start, target);
-							if(count != 0)
-								entry.put(target, Math.log10(goodTuringCounts.getNr(count, i + 1) / n_Count));
-							else
-								entry.put(target, Math.log10(goodTuringCounts.getNr(1, i + 1)/ n_Count));
+								prob = goodTuringCounts.getN1ByOrder(len) / goodTuringCounts.getTotalByOrder(len) / (Math.pow(statesSet.size(), len));
+							entry.put(target, Math.log10(prob));
 						}
 						
 						transitionMatrix.put(start, entry);

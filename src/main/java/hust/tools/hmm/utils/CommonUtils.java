@@ -6,11 +6,6 @@ import java.util.List;
 public class CommonUtils {
 	
 	/**
-	 * 隐藏状态句首标记(Start of Sentence)
-	 */
-	public final static State SOS = new StringState("SOS");
-	
-	/**
 	 * 观测状态未登录词
 	 */
 	public final static Observation UNKNOWN = new StringObservation("UNKNOWN");
