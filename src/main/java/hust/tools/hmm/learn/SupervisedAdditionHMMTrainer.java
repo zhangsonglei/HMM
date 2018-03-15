@@ -3,7 +3,6 @@ package hust.tools.hmm.learn;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.HMModel;
@@ -116,14 +115,6 @@ public class SupervisedAdditionHMMTrainer extends AbstractSupervisedHMMTrainer {
 					}
 				}
 			}
-		}
-		
-		//删除低阶转移概率，仅仅保留order阶概率
-		for(Iterator<Map.Entry<StateSequence, TransitionProbEntry>> it = transitionMatrix.entrySet().iterator(); it.hasNext();) {
-		    StateSequence start = it.next().getKey();
-		    
-		    if(start.length() != order)
-		    	it.remove();
 		}
 	}
 	

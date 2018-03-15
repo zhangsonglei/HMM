@@ -174,7 +174,7 @@ public class GoodTuringCounts {
 			double[] parameters = linearRegression(map);
 			for(int r = 1; r <= max_r[i - 1] + 1; r++) {
 				double Nr = Math.pow(10, parameters[0] + parameters[1] * Math.log10(r));
-				total[i] += r * Nr;
+				total[i - 1] += r * Nr;
 				if(countOfCounts.containsKey(r)) {
 					if(!countOfCounts.get(r).containsKey(i))
 						countOfCounts.get(r).put(i, Nr);

@@ -77,7 +77,7 @@ public class SupervisedWittenBellHMMTrainer extends AbstractSupervisedHMMTrainer
 			TransitionProbEntry entry = new TransitionProbEntry();
 			for(State target : statesSet) {
 				int count = counter.getTransitionCount(start, target);
-				double prob = (DEFAULT_DELTA + count) / (n_Count + N * DEFAULT_DELTA);
+				double prob = count / (n_Count + N);
 				entry.put(target, Math.log10(prob));
 			}
 			

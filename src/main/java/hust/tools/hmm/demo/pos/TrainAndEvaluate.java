@@ -104,7 +104,7 @@ public class TrainAndEvaluate {
 			case "WB":
 				trainer = new SupervisedWittenBellHMMTrainer(trainsamples, order);
 				break;
-			case "KATZ":
+			case "GT":
 				trainer = new SupervisedGoodTuringHMMTrainer(trainsamples, order);
 				break;
 			default:

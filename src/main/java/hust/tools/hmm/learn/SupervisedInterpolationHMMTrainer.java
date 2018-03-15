@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import java.util.Set;
@@ -182,31 +181,27 @@ public class SupervisedInterpolationHMMTrainer extends AbstractSupervisedHMMTrai
 		}
 		
 		//计算插值平滑p*(d|abc) = lamda4*P(d|abc) + lamda3*P(c|ab)  + lamda2*P(b|a) +lamda1*p(a) 
-		sequences = transitionMatrix.keySet().toArray(new StateSequence[transitionMatrix.size()]);
-		for(StateSequence sequence : sequences) {
-			double prob = 0.0;
-			TransitionProbEntry entry = new TransitionProbEntry();
-			if(sequence.length() == order) {
-				for(State target : statesSet) {
-					StateSequence _sSequence = sequence;
-					prob = transitionMatrix.get(_sSequence).getTransitionLogProb(target) * lamdas[_sSequence.length() - 1];
-					for(int i = 1; i < order; i++) {
-						_sSequence = _sSequence.remove(0);
-						prob += transitionMatrix.get(_sSequence).getTransitionLogProb(target) * lamdas[_sSequence.length() - 1];
+		for(int i = order; i > 0; i--) {
+			sequences = transitionMatrix.keySet().toArray(new StateSequence[transitionMatrix.size()]);
+			for(StateSequence sequence : sequences) {
+				int len = sequence.length();
+				if(len == i) {
+					double prob = 0.0;
+					TransitionProbEntry entry = new TransitionProbEntry();
+					for(State target : statesSet) {
+							StateSequence _sSequence = sequence;
+							prob = transitionMatrix.get(_sSequence).getTransitionLogProb(target) * lamdas[_sSequence.length()];
+							for(int j = 1; j < len; j++) {
+								_sSequence = _sSequence.remove(0);
+								prob += transitionMatrix.get(_sSequence).getTransitionLogProb(target) * lamdas[_sSequence.length()];
+							}
+							prob += counter.getEmissionStateCount(target) / counter.getTotalStatesCount();
+							
+							entry.put(target, Math.log10(prob));
 					}
-					
-					entry.put(target, Math.log10(prob));
+					transitionMatrix.put(sequence, entry);
 				}
-				transitionMatrix.put(sequence, entry);
 			}
-		}
-		
-		//删除低阶转移概率，仅仅保留order阶概率
-		for(Iterator<Map.Entry<StateSequence, TransitionProbEntry>> it = transitionMatrix.entrySet().iterator(); it.hasNext();) {
-		    StateSequence start = it.next().getKey();
-		    
-		    if(start.length() != order)
-		    	it.remove();
 		}
 	}
 	
@@ -241,7 +236,7 @@ public class SupervisedInterpolationHMMTrainer extends AbstractSupervisedHMMTrai
 	 * 根据留存数据计算插值权重
 	 */
 	private void calculateLamda() {
-		lamdas = new double[order];
+		lamdas = new double[order + 1];
 		Iterator<StateSequence> iterator = held.transitionIterator();
 		
 		iterator = held.transitionIterator();
@@ -254,19 +249,27 @@ public class SupervisedInterpolationHMMTrainer extends AbstractSupervisedHMMTrai
 					double max = 0.0;	   	//最大数量
 					int max_index = 0;		//最大数量对应的n元长度
 					double accumulation = entry.getValue();	//lamda累加的值
-						
-					for(int i = 0; i < order; i++) {
+					
+					for(int i = 0; i <= order; i++) {
 						StateSequence n_Sequence = sequence.addLast(entry.getKey());
 						for(int j = 0; j < i; j++)
 							n_Sequence = n_Sequence.remove(0);
 						
-						double count = held.getTransitionCount(n_Sequence, n_Sequence.get(n_Sequence.length() - 1));
+						int count = 0;
 						int n_count = 0;
 						double prob = 0.0;
-						if(2  == n_Sequence.length())
+						int len = n_Sequence.length();
+						
+						if(len > 2) {
+							count = held.getTransitionCount(n_Sequence.remove(len - 1), n_Sequence.get(len - 1));
+							n_count = held.getTransitionCount(n_Sequence.remove(len - 1), n_Sequence.get(len - 2));
+						}else if(2  == len) {
+							count = held.getTransitionCount(n_Sequence.remove(len - 1), n_Sequence.get(len - 1));
 							n_count	= held.getEmissionStateCount(n_Sequence.get(0));
-						else
-							n_count = held.getTransitionCount(n_Sequence.remove(n_Sequence.length() - 1), n_Sequence.get(n_Sequence.length() - 2));
+						}else if(1 == len) {
+							count = held.getEmissionStateCount(n_Sequence.get(0));
+							n_count	= held.getTotalStatesCount();
+						}							
 
 						if(1 == n_count)
 							prob = 0.0;
@@ -275,7 +278,7 @@ public class SupervisedInterpolationHMMTrainer extends AbstractSupervisedHMMTrai
 						
 						if(max < prob) {
 							max = prob;
-							max_index = order - i - 1;
+							max_index = order - i;
 						}
 					}
 					lamdas[max_index] += accumulation;
@@ -286,7 +289,7 @@ public class SupervisedInterpolationHMMTrainer extends AbstractSupervisedHMMTrai
 		//正规化 
 		double sum = 0.0;
 		for(int i = 0; i < lamdas.length; i++)
-			sum += lamdas[i] + 0.001;//+1防止权重为0
+			sum += lamdas[i] + 1;//+1防止权重为0
 		for(int i = 0; i < lamdas.length; i++)
 			lamdas[i] = (1 + lamdas[i]) / sum;
 		
