@@ -22,7 +22,7 @@ public class StringState implements State{
 	public StringState(String state) {
 		this.state = state;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -30,7 +30,7 @@ public class StringState implements State{
 		result = prime * result + ((state == null) ? 0 : state.hashCode());
 		return result;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

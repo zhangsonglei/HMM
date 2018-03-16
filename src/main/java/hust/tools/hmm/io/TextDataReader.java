@@ -78,7 +78,7 @@ public class TextDataReader implements DataReader {
 		for(int i = 0; i < states.length; i++)
 			start[i] = new StringState(states[i]);
 				
-		return new TransitionEntry(new StateSequence(start), new StringState(items[1]), Double.parseDouble(items[3]));
+		return new TransitionEntry(new StateSequence(start), new StringState(items[1]), Double.parseDouble(items[2]));
 	}
 
 	@Override

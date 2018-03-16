@@ -47,18 +47,25 @@ public abstract class AbstractHMMWriter implements HMMWriter {
 		statCount();
 	}
 
+	/**
+	 * 统计各个条目的数量
+	 */
 	private void statCount() {
 		counts[0] = order;							//模型阶数
 		counts[1] = dictionary.stateCount();		//隐藏状态数量
 		counts[2] = dictionary.observationCount();	//观测状态数量
 		counts[3] = pi.size();						//隐藏状态数量
-		counts[4] = transitionMatrix.size();		//转移条目数量
 		
 		int total = 0;
+		for(Entry<StateSequence, TransitionProbEntry> entry : transitionMatrix.entrySet())
+			total += entry.getValue().size();
+		counts[4] = total;							//转移条目数量
+		
+		total = 0;
 		for(Entry<State, EmissionProbEntry> entry : emissionMatrix.entrySet())
 			total += entry.getValue().size();
 		
-		counts[5] = total;			//发射条目数量
+		counts[5] = total;							//发射条目数量
 	}
 
 	@Override
