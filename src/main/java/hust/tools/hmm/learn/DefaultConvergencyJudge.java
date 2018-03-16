@@ -1,7 +1,9 @@
-package hust.tools.hmm.model;
+package hust.tools.hmm.learn;
 
 import java.util.List;
 
+import hust.tools.hmm.model.ForwardAlgorithm;
+import hust.tools.hmm.model.HMModel;
 import hust.tools.hmm.utils.ObservationSequence;
 
 /**
@@ -19,11 +21,6 @@ public class DefaultConvergencyJudge implements ConvergencyJudge {
 	 */
 	private final int DEFAULT_ITERATION = 13;
 	
-	/**
-	 * 默认阈值(收敛条件, 两种模型对同一个训练语料的概率差值小于默认阈值)
-	 */
-	private final double DEFAULT_DELTA = 0.01;
-	
 	@Override
 	public boolean isConvergency(HMModel preModel, HMModel currentModel, List<ObservationSequence> trainSequences, int iteration) {	
 		double preLogProb, currentLogProb;
@@ -40,10 +37,7 @@ public class DefaultConvergencyJudge implements ConvergencyJudge {
 		System.out.println("iter = " + iteration + "\tpreLogProb = " + Math.log10(preLogProb) +"\tcurrentLogProb = " + Math.log10(currentLogProb));
 		if(iteration >= DEFAULT_ITERATION)
 			return true;
-		
-//		if(Math.abs(Math.log10(currentLogProb) - Math.log10(preLogProb)) < DEFAULT_DELTA)
-//			return true;
-		
+				
 		return false;
 	}
 }

@@ -1,11 +1,10 @@
 package hust.tools.hmm.model;
 
 import hust.tools.hmm.utils.StateSequence;
-import hust.tools.hmm.utils.StringObservation;
-
 import java.util.HashMap;
 import java.util.Set;
 
+import hust.tools.hmm.utils.CommonUtils;
 import hust.tools.hmm.utils.Dictionary;
 import hust.tools.hmm.utils.Observation;
 import hust.tools.hmm.utils.State;
@@ -24,8 +23,6 @@ public class HMModelBasedMap implements HMModel {
 	 * 版本序列号
 	 */
 	private static final long serialVersionUID = 4845677181963311625L;
-
-	private final Observation UNKNOWN = new StringObservation("UNKNOWN");
 	
 	private int order;
 	
@@ -95,13 +92,13 @@ public class HMModelBasedMap implements HMModel {
 		if(emissionMatrix.get(state).contain(observation))
 			return emissionMatrix.get(state).getEmissionLogProb(observation);
 					
-		return emissionMatrix.get(state).getEmissionLogProb(UNKNOWN);
+		return emissionMatrix.get(state).getEmissionLogProb(CommonUtils.UNKNOWN);
 	}
 	
 	@Override
 	public double emissionLogProb(int state, int observation) {
 		State si = dict.getState(state);
-		Observation ot = (observation != -1) ? dict.getObservation(observation) : UNKNOWN;
+		Observation ot = (observation != -1) ? dict.getObservation(observation) : CommonUtils.UNKNOWN;
 		
 		return emissionLogProb(si, ot);
 	}
@@ -136,7 +133,7 @@ public class HMModelBasedMap implements HMModel {
 	@Override
 	public int getObservationIndex(Observation observation) {
 		if(!dict.containObservation(observation))
-			return dict.getIndex(UNKNOWN);
+			return dict.getIndex(CommonUtils.UNKNOWN);
 		
 		return dict.getIndex(observation);
 	}
@@ -155,6 +152,17 @@ public class HMModelBasedMap implements HMModel {
 	public int observationsCount() {
 		return dict.observationCount();
 	}
+
+	@Override
+	public HMModel clone(){  
+        try {
+			return (HMModel)super.clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+        
+		return null;
+    }
 
 	@Override
 	public int hashCode() {

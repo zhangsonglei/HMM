@@ -7,9 +7,14 @@ import java.util.HashSet;
 import java.util.List;
 
 import hust.tools.hmm.io.AbstractHMMReader;
+import hust.tools.hmm.io.BinaryFileHMMReader;
+import hust.tools.hmm.io.BinaryFileHMMWriter;
 import hust.tools.hmm.io.HMMWriter;
+import hust.tools.hmm.io.ObjectFileHMMReader;
+import hust.tools.hmm.io.ObjectFileHMMWriter;
 import hust.tools.hmm.io.TextFileHMMReader;
 import hust.tools.hmm.io.TextFileHMMWriter;
+import hust.tools.hmm.learn.DefaultConvergencyJudge;
 import hust.tools.hmm.learn.HMMTrainer;
 import hust.tools.hmm.learn.SupervisedAdditionHMMTrainer;
 import hust.tools.hmm.learn.SupervisedGoodTuringHMMTrainer;
@@ -17,7 +22,6 @@ import hust.tools.hmm.learn.SupervisedInterpolationHMMTrainer;
 import hust.tools.hmm.learn.SupervisedMLHMMTrainer;
 import hust.tools.hmm.learn.SupervisedWittenBellHMMTrainer;
 import hust.tools.hmm.learn.UnSupervisedBaumWelchHMMTrainer;
-import hust.tools.hmm.model.DefaultConvergencyJudge;
 import hust.tools.hmm.model.HMM;
 import hust.tools.hmm.model.HMMWithAStar;
 import hust.tools.hmm.model.HMModel;
@@ -160,8 +164,21 @@ public class TrainAndEvaluate {
 	 * @param file		写出路径
 	 * @throws IOException
 	 */
-	public static void writeModel(HMModel model, File file) throws IOException {
-		HMMWriter writer = new TextFileHMMWriter(model, file);
+	public static void writeModel(HMModel model, File file, String type) throws IOException {
+		HMMWriter writer = null;
+		switch (type.toLowerCase()) {
+		case "text":
+			writer = new TextFileHMMWriter(model, file);
+			break;
+		case "binary":
+			writer = new BinaryFileHMMWriter(model, file);
+			break;
+		case "object":
+			writer = new ObjectFileHMMWriter(model, file);
+			break;
+		default:
+			throw new IllegalArgumentException("错误的文件类型:text/binary/object");
+		}
 		
 		writer.persist();
 	}
@@ -173,9 +190,21 @@ public class TrainAndEvaluate {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static HMModel loadModel(File modelFile) throws IOException, ClassNotFoundException {
+	public static HMModel loadModel(File modelFile, String type) throws IOException, ClassNotFoundException {
 		AbstractHMMReader reader = new TextFileHMMReader(modelFile);
-		
+		switch (type.toLowerCase()) {
+		case "text":
+			reader = new TextFileHMMReader(modelFile);
+			break;
+		case "binary":
+			reader = new BinaryFileHMMReader(modelFile);
+			break;
+		case "object":
+			reader = new ObjectFileHMMReader(modelFile);
+			break;
+		default:
+			throw new IllegalArgumentException("错误的文件类型:text/binary/object");
+		}
 		return reader.readModel();
 	}
 	

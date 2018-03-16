@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import hust.tools.hmm.model.BackwardAlgorithm;
-import hust.tools.hmm.model.ConvergencyJudge;
-import hust.tools.hmm.model.DefaultConvergencyJudge;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.ForwardAlgorithm;
 import hust.tools.hmm.model.HMModel;
@@ -31,7 +29,14 @@ import hust.tools.hmm.utils.StateSequence;
  */
 public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrainer {
 
+	/**
+	 * 迭代收敛判断，返回true时结束迭代
+	 */
 	private ConvergencyJudge convergencyJudge;
+	
+	/**
+	 * 训练语料
+	 */
 	private List<ObservationSequence> trainSequences;
 	
 	/**
@@ -73,6 +78,7 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 	public HMModel train() {
 		HMModel preModel, currentModel;
 		currentModel = model;
+		model = null;
 		int iteration = 1;
 		
 		do{
@@ -92,19 +98,19 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 	private HMModel iterate(HMModel model, final List<ObservationSequence> sequences) {
 		Dictionary dict = model.getDict();
 		HashMap<State, Double> pi = new HashMap<>();
-		HashMap<StateSequence, TransitionProbEntry> transitionMatrix = model.getTransitionMatrix();
+		HashMap<StateSequence, TransitionProbEntry> transitionMatrix = new HashMap<>();
 		HashMap<State, EmissionProbEntry> emissionMatrix = new HashMap<>();
 		
 		int N = model.statesCount();
 		int M = model.observationsCount();
 		
-		double[][] alpha, beta;										//前向概率和后向概率
-		double[] tempPiNumerator = new double[N];					//tempPiNumerator[i]初始转移为i的概率之和
-		double tempPiDenominator = 0.0;								//所有初始转移之和的总和
-		double[][] tempTransitionMatrixNumerator = new double[N][N];//tempTransitionMatrixNumerator[i][j]由i转移到j的概率之和
-		double[] tempTransitionMatrixDenominator = new double[N];	//tempTransitionMatrixDenominator[i]由i转移的概率之和
-		double[][] tempEmissionMatrixNumerator = new double[N][M];	//tempEmissionMatrixNumerator[i][j]由i发射到j，且在训练语料中Ot=vj的概率之和
-		double[][] tempEmissionMatrixDenominator = new double[N][M];//tempEmissionMatrixDenominator[i][j]由i发射到j的概率之和
+		double[][] 	alpha, beta;										//前向概率和后向概率
+		double[] 	tempPiNumerator = new double[N];					//tempPiNumerator[i]初始转移为i的概率之和
+		double 		tempPiDenominator = 0.0;							//所有初始转移之和的总和
+		double[][] 	tempTransitionMatrixNumerator = new double[N][N];	//tempTransitionMatrixNumerator[i][j]由i转移到j的概率之和
+		double[] 	tempTransitionMatrixDenominator = new double[N];	//tempTransitionMatrixDenominator[i]由i转移的概率之和
+		double[][] 	tempEmissionMatrixNumerator = new double[N][M];		//tempEmissionMatrixNumerator[i][j]由i发射到j，且在训练语料中Ot=vj的概率之和
+		double[][] 	tempEmissionMatrixDenominator = new double[N][M];	//tempEmissionMatrixDenominator[i][j]由i发射到j的概率之和
 		
 		BackwardAlgorithm backward = null;
 		ForwardAlgorithm forward = null;
@@ -115,27 +121,26 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 			alpha = forward.getAlpha();
 			backward = new BackwardAlgorithm(model, sequence);
 			beta = backward.getBeta();
-						
+			
 			int T = sequence.length();
 			int[] observationsIndex = new int[T];
-			for(int i = 0; i < observationsIndex.length; i++)
+			for(int i = 0; i < observationsIndex.length; i++)//观测序列的索引序列
 				observationsIndex[i] = dict.getIndex(sequence.get(i));
 			
 			double[][][] xi = calcXi(model, observationsIndex, alpha, beta);
 			double[][] gamma = calcGamma(model, T, alpha, beta);
 			
 			for(int i = 0; i < N; i++) {//遍历所有隐藏状态
-				for(int t = 0; t < T - 1; t++) {
-					//计算初始转移概率
-					if(t == 0) {
-						tempPiNumerator[i] += gamma[t][i];
-						tempPiDenominator += tempPiNumerator[i];
-					}
-					
-					//计算转移概率
-					tempTransitionMatrixDenominator[i] += gamma[t][i];
-					for(int j = 0; j < N; j++)
+				//计算初始转移概率
+				tempPiNumerator[i] += gamma[0][i];
+				tempPiDenominator += tempPiNumerator[i];
+				
+				//计算转移概率
+				for(int j = 0; j < N; j++) {
+					for(int t = 0; t < T - 1; t++) {
+						tempTransitionMatrixDenominator[i] += gamma[t][i];
 						tempTransitionMatrixNumerator[i][j] += xi[t][i][j];
+					}
 				}
 			
 				//计算发射概率
@@ -157,85 +162,36 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		double prob = 0.0;
 		for(int i = 0; i < N; i++) {
 			State state = dict.getState(i);
+			
 			//计算初始转移概率
-//			prob = 0.001 + 0.999 * tempPiNumerator[i] / tempPiDenominator;
-//			sumPi += prob;
-//			pi.put(state, prob);
 			prob = tempPiNumerator[i] / tempPiDenominator;
 			pi.put(state, Math.log10(prob));
 			
 			//计算转移概率
-			TransitionProbEntry transitionProbEntry = new TransitionProbEntry();
-//			double sumA = 0.0;
 			StateSequence start = new StateSequence(state);
-			if(tempTransitionMatrixDenominator[i] == 0.0) { // 状态i不可以作为转移起点
-//				sumA = 0.0;
-//				for(int j = 0; j < N; j++) {
-//					State target = dict.getState(j);
-//					prob = Math.pow(10, transitionMatrix.get(start).getTransitionLogProb(target));
-//					sumA += prob;
-//					transitionProbEntry.put(target, prob);
-//				}
-//				//归一化
-//				for(int j = 0; j < N; j++) {
-//					State target = dict.getState(j);
-//					transitionProbEntry.put(target, Math.log10(transitionProbEntry.getTransitionLogProb(target) / sumA));
-//				}
-				
-				for(int j = 0; j < N; j++) {
-					State target = dict.getState(j);
-					transitionProbEntry.put(target, transitionMatrix.get(start).getTransitionLogProb(target));
-				}
-			}else {
-//				sumA = 0.0;
-//				for(int j = 0; j < N; j++) {
-//					State target = dict.getState(j);
-//					prob = tempTransitionMatrixNumerator[i][j] / tempTransitionMatrixDenominator[i];
-//					sumA += prob;
-//					transitionProbEntry.put(target, prob);
-//				}
-//				//归一化
-//				for(int j = 0; j < N; j++) {
-//					State target = dict.getState(j);
-//					transitionProbEntry.put(target, Math.log10(transitionProbEntry.getTransitionLogProb(target) / sumA));
-//				}
-				
-				for(int j = 0; j < N; j++) {
-					State target = dict.getState(j);
-					prob = tempTransitionMatrixNumerator[i][j] / tempTransitionMatrixDenominator[i];
-					transitionProbEntry.put(target, Math.log10(prob));
-				}
+			TransitionProbEntry transitionProbEntry = new TransitionProbEntry();
+			for(int j = 0; j < N; j++) {
+				State target = dict.getState(j);
+				prob = tempTransitionMatrixNumerator[i][j] / tempTransitionMatrixDenominator[i];
+				if(tempTransitionMatrixDenominator[i] == 0 || prob <= 0 || prob >= 1.0)
+					throw new IllegalArgumentException("prob = " + prob + "tempTransitionMatrixDenominator[i] = " + tempTransitionMatrixDenominator[i]);
+				transitionProbEntry.put(target, Math.log10(prob));
 			}
+			
 			transitionMatrix.put(start, transitionProbEntry);
 		
 			//计算发射概率
 			EmissionProbEntry emissionProbEntry = new EmissionProbEntry();
-//			double sumB = 0.0;
-//			for(int j = 0; j < M; j++) {
-//				Observation observation = dict.getObservation(j);
-//				prob = tempEmissionMatrixNumerator[i][j] / tempEmissionMatrixDenominator[i][j];
-//				sumB += prob;
-//				emissionProbEntry.put(observation, prob);
-//			}
-//			//归一化
-//			for(int j = 0; j < M; j++) {
-//				Observation observation = dict.getObservation(j);
-//				emissionProbEntry.put(observation, Math.log10(emissionProbEntry.getEmissionLogProb(observation) / sumB));
-//			}
-			
 			for(int j = 0; j < M; j++) {
 				Observation observation = dict.getObservation(j);
 				prob = tempEmissionMatrixNumerator[i][j] / tempEmissionMatrixDenominator[i][j];
+				if(tempEmissionMatrixDenominator[i][j] == 0 || prob <= 0 || prob >= 1.0)
+					throw new IllegalArgumentException("prob = " + prob + "tempEmissionMatrixDenominator[i][j] = " + tempEmissionMatrixDenominator[i][j]);
 				emissionProbEntry.put(observation, Math.log10(prob));
 			}
 			
 			emissionMatrix.put(state, emissionProbEntry);
 		}
-		
-//		//归一化Pi并取对数
-//		for(Entry<State, Double> entry : pi.entrySet()) {
-//			entry.setValue(Math.log10(entry.getValue() / sumPi));
-//		}
 
 		return new HMModelBasedMap(1, dict, pi, transitionMatrix, emissionMatrix);
 	}
@@ -250,35 +206,22 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 	private double[][] calcGamma(HMModel model, int T, double[][] alpha, double[][] beta) {
 		if(T <= 1)
 			throw new IllegalArgumentException("观测序列太短");
-	
+
 		int N = model.statesCount();
 		double[][] gamma = new double[T][N];
-	
+
 		for(int t = 0; t < T; t++) {
-			double denominator = 0.0;
+			double normalization_factor = 0.0;
 			for(int i = 0; i < N; i++) {
 				gamma[t][i] = Math.pow(10, alpha[t][i]) * Math.pow(10, beta[t][i]);
-				denominator += gamma[t][i];
+				normalization_factor += gamma[t][i];
 			}
 
+			//归一化
 			for(int i = 0; i < N; i++)
-				gamma[t][i] = gamma[t][i] / denominator;
-		}		
-		
-//		double[][] gamma = new double[xi.length + 1][xi[0].length];
-//		
-//		for (int t = 0; t < xi.length + 1; t++)
-//			Arrays.fill(gamma[t], 0.);
-//		
-//		for (int t = 0; t < xi.length; t++)
-//			for (int i = 0; i < xi[0].length; i++)
-//				for (int j = 0; j < xi[0].length; j++)
-//					gamma[t][i] += xi[t][i][j];
-//		
-//		for (int j = 0; j < xi[0].length; j++)
-//			for (int i = 0; i < xi[0].length; i++)
-//				gamma[xi.length][j] += xi[xi.length - 1][i][j];		
-				
+				gamma[t][i] /= normalization_factor;
+		}
+
 		return gamma;
 	}
 	
@@ -296,26 +239,26 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		int T = observations.length;
 		if(T <= 1)
 			throw new IllegalArgumentException("观测序列太短:" + model.getDict().getObservationSequence(observations));
-		
+
 		int N = model.statesCount();
 		double[][][] xi = new double[T - 1][N][N];
 
 		for(int t = 0; t < T - 1; t++) {
-			double sum = 0.0;
+			double normalization_factor = 0.0;
 			for(int i = 0; i < N; i++) {
 				for(int j = 0; j < N; j++) {
 					xi[t][i][j] = Math.pow(10, alpha[t][i]) * Math.pow(10, beta[t+1][j]) * Math.pow(10, model.transitionLogProb(new int[]{i}, j)) * Math.pow(10, model.emissionLogProb(j, observations[t+1]));
-					sum += xi[t][i][j];
+					normalization_factor += xi[t][i][j];
 				}
 			}
-			
+
 			//归一化
 			for(int i = 0; i < N; i++) {
 				for(int j = 0; j < N; j++)
-					xi[t][i][j]  /= sum;
+					xi[t][i][j]  /= normalization_factor;
 			}
 		}
-		
+
 		return xi;
 	}
 }

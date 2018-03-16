@@ -127,4 +127,6 @@ public interface HMModel extends Serializable, Cloneable {
 	 * @return	发射概率矩阵
 	 */
 	public HashMap<State, EmissionProbEntry> getEmissionMatrix();
+	
+    public HMModel clone();
 }

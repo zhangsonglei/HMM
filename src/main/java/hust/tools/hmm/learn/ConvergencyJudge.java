@@ -1,7 +1,8 @@
-package hust.tools.hmm.model;
+package hust.tools.hmm.learn;
 
 import java.util.List;
 
+import hust.tools.hmm.model.HMModel;
 import hust.tools.hmm.utils.ObservationSequence;
 
 /**

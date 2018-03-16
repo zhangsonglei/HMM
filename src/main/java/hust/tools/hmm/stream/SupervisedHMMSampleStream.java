@@ -2,9 +2,6 @@ package hust.tools.hmm.stream;
 
 import java.io.IOException;
 
-import opennlp.tools.util.FilterObjectStream;
-import opennlp.tools.util.ObjectStream;
-
 /**
  *<ul>
  *<li>Description: 抽象样本流 

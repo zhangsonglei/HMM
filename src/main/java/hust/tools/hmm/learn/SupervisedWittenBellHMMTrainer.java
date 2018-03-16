@@ -1,6 +1,7 @@
 package hust.tools.hmm.learn;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -69,16 +70,27 @@ public class SupervisedWittenBellHMMTrainer extends AbstractSupervisedHMMTrainer
 	 */
 	@Override
 	protected void calcTransitionMatrix(TransitionAndEmissionCounter counter) {
+		HashMap<StateSequence, Double> estimateCount = new HashMap<>();
+		
 		Set<State> statesSet = counter.getDictionary().getStates();
 		int N = statesSet.size();
-		for(State state : statesSet) {//遍历所有隐藏状态，增加所有可能的一阶转移概率的最大似然估计
+		for(State state : statesSet) {//遍历所有隐藏状态，增加所有可能的一阶转移概率WittenBell概率
 			StateSequence start = new StateSequence(state);
 			int n_Count = counter.getTransitionStartCount(start);
 			TransitionProbEntry entry = new TransitionProbEntry();
+			double normalization_factor = 0.0;
 			for(State target : statesSet) {
 				int count = counter.getTransitionCount(start, target);
-				double prob = count / (n_Count + N);
-				entry.put(target, Math.log10(prob));
+				double prob = 1.0 * count / n_Count + 1.0 * counter.getEmissionStateCount(target) / counter.getTotalStatesCount();
+				normalization_factor += prob;
+				entry.put(target, prob);
+			}
+			
+			//归一化
+			for(State target : statesSet) {
+				double prob = entry.getTransitionLogProb(target);
+				entry.put(target, Math.log10(prob / normalization_factor));
+				estimateCount.put(start.addLast(target), 1 / prob);
 			}
 			
 			transitionMatrix.put(start, entry);
@@ -89,12 +101,14 @@ public class SupervisedWittenBellHMMTrainer extends AbstractSupervisedHMMTrainer
 			for(StateSequence sequence : sequences) {
 				if(sequence.length() == i) {
 					for(State state : statesSet) {
+						double normalization_factor = 0.0;
 						StateSequence start = sequence.addLast(state);
-						int n_Count = counter.getTransitionStartCount(start);
-						int suffixCount = counter.getTransitionSuffixCount(start);
+						if(!estimateCount.containsKey(start))
+							throw new IllegalArgumentException("不存在 " + start);
+						double n_Count = estimateCount.containsKey(start) ? estimateCount.get(start) : 0.0;
 						double lamda = 0;
-						if(n_Count != 0 && suffixCount != 0)
-							lamda = 1.0 - 1.0 *  suffixCount / (suffixCount + n_Count);
+						if(n_Count != 0)
+							lamda = 1.0 - 1.0 *  N / (N + n_Count);
 						else
 							lamda = 1.0;
 						
@@ -103,14 +117,24 @@ public class SupervisedWittenBellHMMTrainer extends AbstractSupervisedHMMTrainer
 							double sequenceMLProb = 1.0 * counter.getTransitionCount(start, target) / n_Count;
 							double _sequenceWBProb = Math.pow(10, transitionMatrix.get(start.remove(0)).getTransitionLogProb(target));
 							double sequenceWBProb = lamda * sequenceMLProb + (1.0 - lamda) * _sequenceWBProb;
-							entry.put(target, Math.log10(sequenceWBProb));
+							
+							normalization_factor += sequenceWBProb;
+							entry.put(target, sequenceWBProb);
 						}
-												
+						
+						for(State target : statesSet) {
+							double sequenceWBProb = entry.getTransitionLogProb(target);
+							entry.put(target, Math.log10(sequenceWBProb / normalization_factor));
+							
+							estimateCount.put(start.addLast(target), 1 / sequenceWBProb);
+						}
+						
 						transitionMatrix.put(start, entry);
 					}
 				}
 			}
 		}
+		estimateCount.clear();
 	}
 	
 	/**
