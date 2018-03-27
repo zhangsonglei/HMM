@@ -2,8 +2,10 @@ package hust.tools.hmm.learn;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+
 import hust.tools.hmm.model.BackwardAlgorithm;
 import hust.tools.hmm.model.EmissionProbEntry;
 import hust.tools.hmm.model.ForwardAlgorithm;
@@ -99,6 +101,7 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		Dictionary dict = model.getDict();
 		HashMap<State, Double> pi = new HashMap<>();
 		HashMap<StateSequence, TransitionProbEntry> transitionMatrix = new HashMap<>();
+		HashMap<StateSequence, TransitionProbEntry> tempTransitionMatrix = model.getTransitionMatrix();
 		HashMap<State, EmissionProbEntry> emissionMatrix = new HashMap<>();
 		
 		int N = model.statesCount();
@@ -110,7 +113,18 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		double[][] 	tempTransitionMatrixNumerator = new double[N][N];	//tempTransitionMatrixNumerator[i][j]由i转移到j的概率之和
 		double[] 	tempTransitionMatrixDenominator = new double[N];	//tempTransitionMatrixDenominator[i]由i转移的概率之和
 		double[][] 	tempEmissionMatrixNumerator = new double[N][M];		//tempEmissionMatrixNumerator[i][j]由i发射到j，且在训练语料中Ot=vj的概率之和
-		double[][] 	tempEmissionMatrixDenominator = new double[N][M];	//tempEmissionMatrixDenominator[i][j]由i发射到j的概率之和
+		double[] 	tempEmissionMatrixDenominator = new double[N];	//tempEmissionMatrixDenominator[i]由i发射的概率之和
+		
+		Arrays.fill(tempPiNumerator, 0.0);
+		
+		Arrays.fill(tempTransitionMatrixDenominator, 0.0);
+		for(int i = 0; i < tempTransitionMatrixNumerator.length; i++)
+			Arrays.fill(tempTransitionMatrixNumerator[i], 0.0);
+		
+		Arrays.fill(tempEmissionMatrixDenominator, 0.0);
+		for(int i = 0; i < tempEmissionMatrixNumerator.length; i++)
+			Arrays.fill(tempEmissionMatrixNumerator[i], 0.0);
+		
 		
 		BackwardAlgorithm backward = null;
 		ForwardAlgorithm forward = null;
@@ -136,20 +150,20 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 				tempPiDenominator += tempPiNumerator[i];
 				
 				//计算转移概率
-				for(int j = 0; j < N; j++) {
-					for(int t = 0; t < T - 1; t++) {
-						tempTransitionMatrixDenominator[i] += gamma[t][i];
+				for(int t = 0; t < T - 1; t++) {
+					tempTransitionMatrixDenominator[i] += gamma[t][i];
+					
+					for(int j = 0; j < N; j++) 
 						tempTransitionMatrixNumerator[i][j] += xi[t][i][j];
-					}
 				}
 			
 				//计算发射概率
-				for(int k = 0; k < M; k++) {//遍历所有观测
-					for(int t = 0; t < T; t++) {
+				for(int t = 0; t < T; t++) {
+					for(int k = 0; k < M; k++) {//遍历所有观测
+						tempEmissionMatrixDenominator[i] += gamma[t][i];
+						
 						if(sequence.get(t).equals(dict.getObservation(k)))
 							tempEmissionMatrixNumerator[i][k] += gamma[t][i];
-						
-						tempEmissionMatrixDenominator[i][k] += gamma[t][i];
 					}
 				}
 			}
@@ -158,13 +172,12 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 		/**
 		 * 重新估算模型参数
 		 */		
-//		double sumPi = 0.0;
 		double prob = 0.0;
 		for(int i = 0; i < N; i++) {
 			State state = dict.getState(i);
 			
 			//计算初始转移概率
-			prob = tempPiNumerator[i] / tempPiDenominator;
+			prob = 0.001 + 0.999 * tempPiNumerator[i] / tempPiDenominator;
 			pi.put(state, Math.log10(prob));
 			
 			//计算转移概率
@@ -172,24 +185,22 @@ public class UnSupervisedBaumWelchHMMTrainer extends AbstractUnSupervisedHMMTrai
 			TransitionProbEntry transitionProbEntry = new TransitionProbEntry();
 			for(int j = 0; j < N; j++) {
 				State target = dict.getState(j);
-				prob = tempTransitionMatrixNumerator[i][j] / tempTransitionMatrixDenominator[i];
-				if(tempTransitionMatrixDenominator[i] == 0 || prob <= 0 || prob >= 1.0)
-					throw new IllegalArgumentException("prob = " + prob + "tempTransitionMatrixDenominator[i] = " + tempTransitionMatrixDenominator[i]);
+				if(tempTransitionMatrixDenominator[i] == 0)
+					prob = Math.pow(10, tempTransitionMatrix.get(start).getTransitionLogProb(target));
+				else
+					prob = 0.001 + 0.999 * tempTransitionMatrixNumerator[i][j] / tempTransitionMatrixDenominator[i];
+				
 				transitionProbEntry.put(target, Math.log10(prob));
 			}
-			
 			transitionMatrix.put(start, transitionProbEntry);
 		
 			//计算发射概率
 			EmissionProbEntry emissionProbEntry = new EmissionProbEntry();
 			for(int j = 0; j < M; j++) {
 				Observation observation = dict.getObservation(j);
-				prob = tempEmissionMatrixNumerator[i][j] / tempEmissionMatrixDenominator[i][j];
-				if(tempEmissionMatrixDenominator[i][j] == 0 || prob <= 0 || prob >= 1.0)
-					throw new IllegalArgumentException("prob = " + prob + "tempEmissionMatrixDenominator[i][j] = " + tempEmissionMatrixDenominator[i][j]);
+				prob = 0.001 + 0.999 * tempEmissionMatrixNumerator[i][j] / tempEmissionMatrixDenominator[i];
 				emissionProbEntry.put(observation, Math.log10(prob));
 			}
-			
 			emissionMatrix.put(state, emissionProbEntry);
 		}
 

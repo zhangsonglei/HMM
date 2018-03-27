@@ -26,16 +26,15 @@ import hust.tools.hmm.utils.ObservationSequence;
 public class UnSupervisedTrainBySupervisedModel {
 
 	private final int DEFAULT_ORDER = 1;
-	private final String DEFAULT_SMOOTH = "ADD";
 	
 	private int order;
 	private String smooth;
 	private List<SupervisedHMMSample> supervisedSamples;
 	
-	public UnSupervisedTrainBySupervisedModel(List<SupervisedHMMSample> supervisedSamples) {
+	public UnSupervisedTrainBySupervisedModel(List<SupervisedHMMSample> supervisedSamples, String smooth) {
 		this.supervisedSamples = supervisedSamples;
 		this.order = order > 0 ? order : DEFAULT_ORDER;
-		this.smooth = DEFAULT_SMOOTH;
+		this.smooth = smooth;
 	}
 
 	/**
