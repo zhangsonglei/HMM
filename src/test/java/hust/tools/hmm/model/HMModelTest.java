@@ -84,7 +84,7 @@ public class HMModelTest {
 		State[] states = new StringState[]{new StringState("3")};
 		StateSequence start = new StateSequence(states);
 		State target = new StringState("4");
-		assertEquals(Math.log10(Double.MIN_VALUE), model.transitionLogProb(start, target), 0.01);
+		assertEquals(Math.log10(3.0/11), model.transitionLogProb(start, target), 0.000001);
 		
 		states = new StringState[]{new StringState("5"), new StringState("2"), new StringState("1")};
 		start = new StateSequence(states);
@@ -96,36 +96,19 @@ public class HMModelTest {
 	public void testemissionLogProbStateObservation() {
 		State state = new StringState("2");
 		Observation observation = new StringObservation("a");
-		assertTrue(Math.log10(2.0/9) == model.emissionLogProb(state, observation));
+		assertTrue(Math.log10(2.0/10) == model.emissionLogProb(state, observation));
 		
 		observation = new StringObservation("b");
-		assertTrue(Math.log10(3.0/9) ==  model.emissionLogProb(state, observation));
+		assertTrue(Math.log10(3.0/10) ==  model.emissionLogProb(state, observation));
 		
 		observation = new StringObservation("c");
-		assertTrue(Math.log10(3.0/9) ==  model.emissionLogProb(state, observation));
+		assertTrue(Math.log10(3.0/10) ==  model.emissionLogProb(state, observation));
 		
 		observation = new StringObservation("d");
-		assertTrue(Math.log10(1.0/9) ==  model.emissionLogProb(state, observation));
+		assertTrue(Math.log10(1.0/10) ==  model.emissionLogProb(state, observation));
 		
 		observation = new StringObservation("z");
-		assertTrue(Math.log10(1.0/9) ==  model.emissionLogProb(state, observation));
-	}
-
-	//测试返回给定发射索引对应发射的概率
-	@Test
-	public void testemissionLogProbIntInt() {
-		int state = 1;
-		int observation = 0;
-		assertTrue(Math.log10(2.0/9) ==  model.emissionLogProb(state, observation));
-		
-		observation = 1;
-		assertTrue(Math.log10(3.0/9) ==  model.emissionLogProb(state, observation));
-		
-		observation = 2;
-		assertTrue(Math.log10(3.0/9) ==  model.emissionLogProb(state, observation));
-		
-		observation = 3;
-		assertTrue(Math.log10(1.0/9) ==  model.emissionLogProb(state, observation));
+		assertTrue(Math.log10(1.0/10) ==  model.emissionLogProb(state, observation));
 	}
 
 	//测试返回所有观测状态
@@ -161,15 +144,6 @@ public class HMModelTest {
 			assertTrue(list.contains(actual[i]));
 	}
 
-	//返回给定观测序列和隐藏状态序列的概率
-	@Test
-	public void testGetProbObservationSequenceStateSequenceInt() {
-//		StateSequence stateSequence = new StateSequence();
-//		ObservationSequence observationSequence = new ObservationSequence();
-//		
-//		assertEquals(0, model.getProb(observationSequence, stateSequence, order), 0.01);
-	}
-
 	//返回给定隐藏状态的初始概率
 	@Test
 	public void testgetLogPiState() {
@@ -178,16 +152,6 @@ public class HMModelTest {
 		assertTrue(Math.log10(2.0/8) == model.getLogPi(new StringState("3")));
 		assertTrue(Math.log10(1.0/8) == model.getLogPi(new StringState("4")));
 		assertTrue(Math.log10(2.0/8) == model.getLogPi(new StringState("5")));
-	}
-
-	//返回给定隐藏状态索引对应索引的初始概率
-	@Test
-	public void testgetLogPiInt() {
-		assertTrue(Math.log10(2.0/8) == model.getLogPi(0));
-		assertTrue(Math.log10(1.0/8) == model.getLogPi(1));
-		assertTrue(Math.log10(2.0/8) == model.getLogPi(2));
-		assertTrue(Math.log10(1.0/8) == model.getLogPi(3));
-		assertTrue(Math.log10(2.0/8) == model.getLogPi(4));
 	}
 
 	//测试返回给定观测状态的索引
